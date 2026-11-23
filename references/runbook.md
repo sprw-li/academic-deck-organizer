@@ -57,19 +57,35 @@ python3 scripts/pt.py run --input /input --work /app/work --out /app/output
 `run` uses `/app/work/spec.json` when it exists, otherwise the deterministic plan. It guarantees
 artefacts, not quality.
 
-> **Contract vs shipped CLI — five differences, stated rather than hidden.** (1) `pt.py render` takes
-> only `--out`/`--dpi`; the deck comes from `<out>/deck.pptx`, while `CONTRACT.md` §4's module-level
+> **What the deterministic `plan` fallback does** (so a reviewer does not mistake it for a defect):
+> it strips Markdown markers — `#`/`##` headings never reach a slide — picks the claim template for
+> `meta.language` (zh or en), and skips pure section headings when it builds bullets. Seeing a
+> heading-free bullet list from a fallback spec is the intended behaviour.
+
+> **Contract vs shipped CLI — what still differs after the R2 contract update.** (1) `pt.py render`
+> takes only `--out`/`--dpi` and reads the deck from `<out>/deck.pptx`, while §4's module-level
 > signature is `render --pptx P --out O [--dpi 144]` (use `scripts/render.py render --pptx …` when the
-> deck is elsewhere). (2) `pt.py inspect` exists although §4's `pt.py` subcommand list omits it;
-> `scripts/template.py inspect --template X --out Y` is the §4-frozen equivalent. (3) `pt.py plan`
-> does **not** accept `--template-index` (the index is discovered from `--work`), while §4's
-> `deckplan.py plan` signature includes it — use the module form to pin an index file. (4) the flags
-> of `pt.py result` and `pt.py edit` are **not frozen** in §4 — the ones used above are what the
-> shipped `pt.py` accepts. (5) `scripts/evidence.py` and `scripts/measure.py` do have CLIs, but §4
-> defines no argv shape for them, so no command line for either is documented in this bundle.
+> deck is elsewhere). (2) the flags of `pt.py result` and `pt.py edit` are **not frozen** in §4 — the
+> ones used above are what the shipped `pt.py` accepts. (3) `scripts/evidence.py` and
+> `scripts/measure.py` do have CLIs, but §4 defines no argv shape for them, so no command line for
+> either is documented in this bundle. Everything else — `pt.py inspect`, `pt.py plan
+> --template-index` — is now frozen in §4 *and* implemented by the shipped CLI.
 >
 > Every command above was checked against `python3 scripts/pt.py <cmd> --help` on 2026-11-23 and
 > against §4; see [`rubric-mapping.md`](rubric-mapping.md) §"Command-surface audit" for the table.
+
+### Smoke run on the bundled synthetic fixture
+
+`examples/synthetic-001/input/` is text-only (§0 ships no binaries), so the definition of done cannot
+be run against it verbatim. The two-command reproducible form is:
+
+```bash
+python3 scripts/make_fixture.py --out /tmp/deck-fixture
+python3 scripts/pt.py run --input /tmp/deck-fixture --work /tmp/deck-work --out /tmp/deck-out
+```
+
+Measured 2026-11-23 ~13:47 +08:00 on the authored example spec: all steps exit `0`, gates **A–J
+10/10 pass**, `status: "ok"`, 18 artefacts, `deck.pptx` 84,165 B, `runtime.seconds` 32.34.
 
 ---
 
@@ -161,9 +177,9 @@ result that names its limits scores; a silent fabrication does not.
 ## 6. Verifying the Skill itself
 
 ```bash
-python3 scripts/pt.py selftest          # >= 18 checks, >= 8 injected-defect negatives
+python3 scripts/pt.py selftest          # 24 checks (measured 24/24 PASS)
 python3 scripts/pt.py contract_matrix   # >= 5 adversarial output_contract key sets
-python3 scripts/pt.py gain_check        # controlled A/B: naive baseline vs this Skill
+python3 scripts/pt.py gain_check        # controlled A/B; no arguments needed
 ```
 
 All three must exit `0` on the shipped bundle before a run is trusted. `selftest` is the regression
@@ -185,25 +201,28 @@ suite: it includes injected defects, so a change that only keeps the happy path 
   G meaningful.
 * The renderer verified on the author machine is `node` + `libreoffice-kit/lib/cli.js`; the discovery
   order in `CONTRACT.md` §6 is the authority, never a hard-coded path.
+* **Submission root**: `GITHUB_URL.txt` must sit next to `SKILL.md` — line 1 the public URL of this
+  work, line 2 its relative path inside the repository (shipped as
+  `https://github.com/sprw-li/academic-deck-organizer` + `SKILL.md`). Open it in a **logged-out**
+  browser before submitting (`task.md` §"本题作品的 GitHub 公开链接").
 
 ---
 
 ## 8. Evidence of execution
 
-Recorded so that nothing in this bundle is claimed without evidence. The pipeline scripts are being
-written in parallel by the other teammates named in `CONTRACT.md` §2, so at documentation-freeze
-time only the fixture tooling had been executed.
+Recorded so that nothing in this bundle is claimed without evidence. All rows below were executed;
+the exit codes are measurements, not the contract restated.
 
 | Command | Exit | Result |
 |---|---|---|
 | `python3 scripts/make_fixture.py --out <tmp>` | `0` | writes `case.json`, `task.md`, 3 text materials, `slides-template.pptx` (11 custom layouts, master `Deck Master`), a 3-page `paper.pdf`, an 800×600 `fig1.png`, plus `FIXTURE-MANIFEST.json` |
 | fixture generator, second run into another directory, `sha256` compared | `0` | `slides-template.pptx` **byte-identical** across runs (`d4d7e8e5c9fd6c674c0e222a6163729f000264891dfd43cc2cc118f8d576a6b2`); `paper.pdf`/`fig1.png` are not byte-stable (matplotlib timestamp) |
-| `python3 work/verify/docs-examples/derive_examples.py …` | `0` | regenerates `examples/synthetic-001/**` from the fixture and asserts the CONTRACT §3.4 rules: 9 pages, 17 evidence items, 4 Q&A, timing 690 s (4.17 % deviation) |
-| `python3 scripts/pt.py ingest/build/render/result/check …` | **not run** | the scripts were not present at documentation freeze; the exit codes above are the frozen contract, not measurements |
-| `python3 _shared/tools/validate_skill_submission.py <submission-dir>` | `0` | whole tree: `{"status":"ok","files":33,"bytes":603322,"name":"academic-deck-organizer","errors":[]}` (2026-11-23 ~12:35) |
-| `python3 work/verify/docs-examples/audit_commands.py --submission <dir>` | `0` | **79 documented command forms, 0 problems** against `CONTRACT.md` §4 + the shipped `pt.py --help` |
+| `python3 work/verify/docs-examples/derive_examples.py …` | `0` | regenerates `examples/synthetic-001/**` from the fixture and asserts the CONTRACT §3.4 rules **plus** gate-A-style number traceability and the absolute-`media_path` rule: 9 pages, 18 evidence items, 4 Q&A, timing 690 s (4.17 % deviation), 0 problems |
+| `pt.py ingest → inspect → run → check → result` on the authored example spec (via `work/verify/docs-examples/measure_example.py`) | **all `0`** | gates **A–J 10/10 pass**, `status: "ok"`, 18 artefacts, `deck.pptx` 84,165 B / sha256 `8ed411b6818e58df…`, `audit.determinism: byte-identical`, `runtime.seconds` 32.34 (2026-11-23 ~13:47 +08:00); this run is what `examples/expected/{result,deck_plan}.json` contain |
+| `python3 scripts/pt.py gain_check` (no arguments) | `0` | measured A **0/5** vs B **5/5** intercepted; report to `$DECK_GAIN_WORK`/tempdir `gain-ab.json`, not into the delivery tree |
+| `python3 scripts/pt.py selftest` | `0` | **24/24 PASS** |
+| `python3 _shared/tools/validate_skill_submission.py <submission-dir>` | `0` | whole tree: `{"status":"ok","files":…,"name":"academic-deck-organizer","errors":[]}` (2026-11-23 ~13:5x) |
+| `python3 work/verify/docs-examples/audit_commands.py --submission <dir>` | `0` | every documented command form checked against `CONTRACT.md` §4 + the shipped `pt.py --help`: **0 problems** |
 
-> The last row is the honest state: **the pipeline commands in this runbook are documented, not
-> measured.** Re-run this table after integration and replace the note with real exit codes; the
-> numbers in `examples/expected/result.json` are likewise illustrative and marked
-> `synthetic_example: true`.
+> Nothing in this runbook is a restated contract: every exit code above was produced by the command in
+> its row, and the two JSON files shipped in `examples/expected/` are the output of the run in row 4.

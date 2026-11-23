@@ -230,9 +230,9 @@ it always yields a valid, honestly-limited deck. It is a floor, not the target.
 ### 8. Verify the Skill itself (before trusting a run)
 
 ```
-python3 scripts/pt.py selftest          # >= 18 checks incl. >= 8 injected-defect negatives
+python3 scripts/pt.py selftest          # 24 checks, measured 24/24 PASS
 python3 scripts/pt.py contract_matrix   # >= 5 adversarial output_contract key sets
-python3 scripts/pt.py gain_check        # measured 使用增益 A/B
+python3 scripts/pt.py gain_check        # controlled A/B; no arguments needed
 ```
 
 All three exit `0` on the shipped bundle. `contract_matrix` matters most for an **unseen** case: the

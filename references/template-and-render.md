@@ -142,27 +142,29 @@ Two habits that keep both green:
 
 ---
 
-## 5. Known schema gaps in template/render handling
+## 5. Template/render points that used to be gaps (now frozen)
 
-Recorded because a reviewer should not have to rediscover them, and because they must be pinned down
-before a case depends on them:
+Re-checked after the R2 contract update; what remains is listed at the end.
 
-1. **Caption adaptation marker.** Gate E's fail condition mentions a caption that differs from the
-   material caption "without being marked adapted", but `CONTRACT.md` §3.4 does not freeze an
-   `adapted` field on `pages[].figure`. Until it does, the safe route is to reuse the source caption
-   **verbatim** — which is what the bundled example does.
-2. **Figure path form, resolved in §3.1 but not in §3.4.** §3.1 now records figures with an
-   **absolute** `media_path` (what the renderer opens) plus a human-readable `media_rel`, and gate A's
-   figure exception checks `sha256(media_path) == media_sha256`. §3.4's own DeckSpec snippet still
-   shows the older relative form (`"media_path": "materials/fig1.png"`), so the two examples in
-   `CONTRACT.md` disagree. This bundle follows §3.1 (absolute, and it is what gate A/E actually
-   check); the §3.4 snippet should be corrected. Reported to the Lead.
-3. **`render.py`'s CLI exit code.** §4 freezes the flags (`render --pptx P --out O [--dpi 144]`) but
+* **Caption adaptation is a field now.** `pages[].figure.caption_adapted` (bool, default `false`)
+  declares a deliberate rewrite of the source caption; gate E records it as `adapted` instead of
+  failing. Gate E also accepts a **prefix-truncated** caption (a screenshot or a layout-truncated
+  form: a prefix of the source, ≥ 20 chars and ≥ 40 % of its length) as `一致(截断)` — truncation by
+  the layout is a legitimate handling, not a defect. Reusing the source caption verbatim remains the
+  strongest option, and the bundled example does that with `caption_adapted: false`.
+* **The figure path form is settled.** §3.1 records figures with an **absolute** `media_path` (what
+  the renderer opens) plus a human-readable `media_rel`, and gate A's figure exception checks
+  `sha256(media_path) == media_sha256`; §3.4's DeckSpec snippet now shows the same absolute form, and
+  `pages[].figure` carries `media_path` only (`media_rel` stays a `materials.json` detail).
+
+Still open:
+
+1. **`render.py`'s CLI exit code.** §4 freezes the flags (`render --pptx P --out O [--dpi 144]`) but
    not the exit code for the renderer-unavailable case, which §6 defines as a returned dict rather
    than an exception. Treat the manifest as the authority, not the exit code.
-4. **`pt.py render` vs §4.** The shipped `pt.py render` accepts only `--out`/`--dpi` and derives the
-   deck from `<out>/deck.pptx`, while §4's `render.py` signature takes `--pptx`. Both forms are
-   documented here so neither reading is hidden. Reported to the Lead.
+2. **`pt.py render` vs §4.** The shipped `pt.py render` accepts only `--out`/`--dpi` and derives the
+   deck from `<out>/deck.pptx`, while §4's `render.py` signature takes `--pptx`. §4 now documents that
+   split explicitly, so both forms are stated here and neither reading is hidden.
 
 ---
 

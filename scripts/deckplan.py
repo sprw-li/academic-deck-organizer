@@ -46,6 +46,16 @@ ROLE_CLAIM = {
     "conclusion": "What the audience should take away: {q}",
 }
 
+ROLE_CLAIM_ZH = {
+    "hook": "为什么这个问题值得关注：{q}",
+    "problem": "尚未解决的问题：{q}",
+    "gap": "前人工作留下的空白：{q}",
+    "method": "我们的方法：{q}",
+    "results": "核心发现：{q}",
+    "limitation": "证据的边界：{q}",
+    "conclusion": "听众应当记住的一句话：{q}",
+}
+
 ROLE_NOTE = {
     "hook": "Open with the stakes, not the methods. State why the audience should care before any technical term appears.",
     "problem": "Name the concrete failure or cost that makes this problem worth a talk. Keep it to one sentence on screen.",
@@ -55,6 +65,28 @@ ROLE_NOTE = {
     "limitation": "Volunteer the limitation before the audience finds it; it protects every claim you made earlier.",
     "conclusion": "Repeat the single takeaway, then name the one decision or next step you want from this audience.",
 }
+
+ROLE_NOTE_ZH = {
+    "hook": "开场先讲利害关系，不要先讲方法；在出现任何术语之前，先说清听众为什么要关心。",
+    "problem": "点明具体失败或代价，让听众明白这个问题值得一次汇报；屏幕上只留一句话。",
+    "gap": "明确指出前人工作缺什么，并说明需要什么证据才能补上这个缺口。",
+    "method": "按听众理解的顺序讲流程，而不是按论文的章节顺序。",
+    "results": "先读图，再报效应量，最后说明这条证据有多强。",
+    "limitation": "在听众发现之前主动说出局限，这能保护你前面提出的每一个主张。",
+    "conclusion": "重复那一个结论，然后说明你要这个听众做的决定或下一步。",
+}
+
+HEADING_ZH = {"摘要": 1, "方法": 1, "结果": 1, "限制": 1, "结论": 1, "引言": 1, "讨论": 1}
+
+
+def _strip_md(s: str) -> str:
+    """Remove Markdown scaffolding so raw '#'/'##' never reaches a slide."""
+    t = normalize_ws(s or "")
+    t = re.sub(r"^[#>\-\*\+•\s]+", "", t)          # leading heading/bullet markers
+    t = re.sub(r"\s*[#>\*`]+\s*$", "", t)          # trailing markers
+    t = t.replace("**", "").replace("__", "")
+    t = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", t)  # inline links -> label
+    return normalize_ws(t)
 
 
 # --------------------------------------------------------------------------- #
@@ -218,8 +250,19 @@ def _pick(items, kinds, used, limit, max_reuse: int = MAX_REUSE):
 
 
 def _clip(s: str, n: int) -> str:
-    s = normalize_ws(s)
+    s = _strip_md(s)
     return s if len(s) <= n else s[: n - 1].rstrip() + "…"
+
+
+def _is_heading_only(s: str) -> bool:
+    """A markdown heading that carries no sentence is not a usable bullet."""
+    t = _strip_md(s)
+    if not t:
+        return True
+    if re.match(r"^(abstract|introduction|methods?|results?|discussion|conclusions?|limitations?|"
+                r"appendix|references|acknowledg\w*)$", t, re.I):
+        return True
+    return t in HEADING_ZH
 
 
 def _role_sequence(n: int) -> list[str]:
@@ -293,6 +336,11 @@ def autoplan(materials: dict, case: dict, template_index: dict | None,
 
     nums = [i for i in items if i.get("kind") == "number" and i.get("value") is not None]
     figs = [i for i in items if i.get("kind") == "figure"]
+    _body = lambda it: _strip_md(it.get("text") or (it.get("source") or {}).get("quote") or "")  # noqa: E731
+    # Heading-only entries ("## Methods") are section markers, not citable content: they stay
+    # out of the sentence pool so pages prefer a real number/figure/sentence.
+    quotes = [i for i in items if i.get("kind") in ("quote", "section") and not _is_heading_only(_body(i))]
+    sects = [i for i in items if i.get("kind") == "section" and not _is_heading_only(_body(i))]
 
     # Figures whose caption never appears in the text are deliberately kept out of the
     # evidence ledger (an empty quote would be an E902).  They are still real figures, so
@@ -320,8 +368,6 @@ def autoplan(materials: dict, case: dict, template_index: dict | None,
             })
     figs = figs + media_only
     tabs = [i for i in items if i.get("kind") == "table"]
-    sects = [i for i in items if i.get("kind") == "section"]
-    quotes = [i for i in items if i.get("kind") in ("quote", "section")]
 
     used: dict = {}
     evidence: list[dict] = []
@@ -386,7 +432,8 @@ def autoplan(materials: dict, case: dict, template_index: dict | None,
         elif role in ("problem", "hook", "gap"):
             grp = _pick(quotes, ("quote", "section"), used, 2) or _pick(nums, ("number",), used, 1)
         elif role == "method":
-            grp = _pick(sects, ("section",), used, 2) or _pick(nums, ("number",), used, 1)
+            grp = (_pick(sects, ("section",), used, 2) or _pick(nums, ("number",), used, 1)
+                   or _pick(quotes, ("quote",), used, 1))
         elif role == "limitation":
             grp = _pick(quotes, ("quote", "section"), used, 1)
         elif role == "conclusion":
@@ -410,11 +457,13 @@ def autoplan(materials: dict, case: dict, template_index: dict | None,
     for role, grp in groups:
         if role in CONTENT_ROLES and not grp:
             role = "backup"  # nothing resolvable left: this slide cannot carry a claim
-        pages.append(_make_page(f"P{len(pages) + 1}", role, grp, take, layout_for(role)))
+        pages.append(_make_page(f"P{len(pages) + 1}", role, grp, take, layout_for(role),
+                                hints["language"]))
 
     # --- shortfall: extra slides become backup (they are reference pages, not claims) ---
     for idx in range(len(pages), n_slides):
-        pages.append(_make_page(f"P{idx + 1}", "backup", [], take, layout_for("backup")))
+        pages.append(_make_page(f"P{idx + 1}", "backup", [], take, layout_for("backup"),
+                                hints["language"]))
 
     # --- Q&A preparation ---
     qa = _make_qa(pages, evidence, hints)
@@ -503,14 +552,31 @@ def autoplan(materials: dict, case: dict, template_index: dict | None,
 
 
 def _first_real_sentence(materials: dict) -> str:
-    for f in materials.get("files") or []:
-        text = normalize_ws(f.get("text") or "")
-        if len(text) > 40:
-            m = re.search(r"[^\n.!?。！？]{25,160}[.!?。！？]", text)
-            if m:
-                return m.group().strip()
-            return text[:140]
+    """First line that is real prose: markers stripped, bare labels and CSV rows skipped."""
+    kind_rank = {"md": 0, "txt": 0, "markdown": 0, "pdf": 1, "docx": 1}
+    files = sorted(materials.get("files") or [],
+                   key=lambda f: kind_rank.get(str(f.get("kind", "")).lower(), 2))
+    for f in files:
+        for line in (f.get("text") or "").splitlines():
+            if _is_heading_only(line):
+                continue
+            t = _strip_md(line)
+            if len(t) < 8:
+                continue
+            if _looks_like_record(t):
+                continue
+            m = re.search(r"[^\n.!?。！？]{20,160}[.!?。！？]", t)
+            return (m.group().strip() if m else t[:140])
     return ""
+
+
+def _looks_like_record(line: str) -> bool:
+    """A CSV/TSV row or a pure key:value line is data, not a sentence for the title slide."""
+    if line.count(",") >= 1 and not re.search(r"[.!?。！？]", line) and " " not in line:
+        return True
+    if re.match(r"^[^:：]{1,20}[:：]\s*[^,，]{0,30}$", line) and len(line) < 30:
+        return True
+    return False
 
 
 NOTE_FILLER = (
@@ -524,7 +590,8 @@ BACKUP_SAY = ("Hold this slide in reserve. Do not present it unless a question f
 BACKUP_CLAIM = "Backup / appendix material — not part of the main narrative"
 
 
-def _make_page(pid: str, role: str, grp: list[dict], take, layout: str | None) -> dict:
+def _make_page(pid: str, role: str, grp: list[dict], take, layout: str | None,
+               lang: str = "en") -> dict:
     evidence_ids = []
     bullets: list[str] = []
     figure = None
@@ -537,17 +604,26 @@ def _make_page(pid: str, role: str, grp: list[dict], take, layout: str | None) -
             figure = {"evidence_id": entry["id"], "media_path": it["media_path"],
                       "placement": "right", "caption": normalize_ws(it.get("text") or "")}
         elif entry.get("value") is not None:
-            bullets.append(f"{_clip(str(entry['value']), 20)} {entry.get('unit', '')}".strip()
-                           + (" — " + _clip(entry["source"]["quote"], 90) if entry["source"].get("quote") else ""))
+            quoted = _clip(entry["source"].get("quote") or "", 90)
+            bullets.append((f"{_clip(str(entry['value']), 20)} {entry.get('unit', '')}".strip()
+                            + (" — " + quoted if quoted else "")))
         else:
-            bullets.append(_clip(entry["source"].get("quote") or entry["claim"], 110))
+            text = entry["source"].get("quote") or entry["claim"]
+            if not _is_heading_only(text):
+                bullets.append(_clip(text, 110))
     if not bullets and figure:
         bullets.append(_clip(figure["caption"], 110))
+    if not bullets and grp:
+        # every candidate was a bare heading: still cite it, but say what it is
+        first = take(grp[0])
+        bullets.append(_clip(first["source"].get("quote") or first["claim"], 110))
     if not bullets:
         bullets.append("[backup / appendix slide: no additional resolvable source material]" if role == "backup"
                        else f"[no resolvable source for this {role} slide — see limitations]")
 
     bullets = [b for b in bullets if b][:4]
+    claims = ROLE_CLAIM_ZH if lang == "zh" else ROLE_CLAIM
+    notes_text = ROLE_NOTE_ZH if lang == "zh" else ROLE_NOTE
 
     if role == "backup":
         claim = BACKUP_CLAIM
@@ -556,10 +632,10 @@ def _make_page(pid: str, role: str, grp: list[dict], take, layout: str | None) -
         strength = "preliminary"
     else:
         q = bullets[0] if bullets else role
-        claim = normalize_ws(ROLE_CLAIM.get(role, "{q}").format(q=_clip(q, 110)))
+        claim = normalize_ws(claims.get(role, "{q}").format(q=_clip(q, 110)))
         if len(claim) > 160:
             claim = claim[:159].rstrip() + "…"
-        say = f"{ROLE_NOTE.get(role, 'State the single point of this slide, then hand off.')} " \
+        say = f"{notes_text.get(role, 'State the single point of this slide, then hand off.')} " \
               f"Deliver the on-screen sentence once, then give the evidence behind it."
         for filler in NOTE_FILLER:
             if similarity(say, " ".join(bullets)) < NOTES_SIM_THRESHOLD:

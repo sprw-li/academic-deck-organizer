@@ -336,6 +336,11 @@ _CONTRACT_FAMILIES: list[tuple[str, tuple[str, ...]]] = [
 
 def _family_of(key: str) -> str | None:
     k = re.sub(r"[^a-z0-9\u4e00-\u9fff]+", "_", str(key).lower())
+    # Plan-ish keys win over the generic "slide" token: `per_slide_blueprint` is the page
+    # plan (deck_plan.json), not the deck itself.
+    if any(t in k for t in ("plan", "blueprint", "outline", "storyboard", "structure",
+                            "page_map", "pagemap")):
+        return "plan"
     for fam, tokens in _CONTRACT_FAMILIES:
         for t in tokens:
             if t in k:

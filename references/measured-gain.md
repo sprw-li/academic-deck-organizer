@@ -46,20 +46,20 @@ more files.
 
 | # | Injected defect | Which gate must catch it | Why it is a realistic failure |
 |---|---|---|---|
-| 1 | a **fabricated number** attached to a real citation | **A** (`E903`) | the most dangerous failure mode of this topic: a real source laundering an invented value |
-| 2 | a page claim with **no evidence id** | **A** | "everyone knows this" sentences that are not in the materials |
-| 3 | slide count ≠ `budget.slide_count` / timing out of band | **B** | the classic "deck grew until it no longer fits the slot" |
-| 4 | **notes duplicating the bullets** | **D** | notes that add nothing make the speaker read the slide aloud |
-| 5 | figure caption **not matching the source caption** | **E** | a re-worded caption that quietly strengthens the claim |
+| **D1** | a **fabricated number** (a value absent from the materials) placed in a content page's bullets | **A** (number traceability) | the most dangerous failure mode of this topic: a real-looking slide carrying a value that is not in any material |
+| **D2** | a page claim with **no evidence id** | **A** | "everyone knows this" sentences that are not in the materials |
+| **D3** | slide count ≠ `budget.slide_count` | **B** | the classic "deck grew until it no longer fits the slot" |
+| **D4** | **notes duplicating the bullets** | **D** | notes that add nothing make the speaker read the slide aloud |
+| **D5** | a figure caption **not matching the source caption** and not marked adapted | **E** | a re-worded caption that quietly strengthens the claim |
 
 The exact cell set is fixed in `scripts/gain_check.py`; each cell records **both exit codes**, so the
 comparison can be re-run by anyone.
 
 ## 3. What is measured
 
-* **Defect interception**: how many of the injected defects A ships versus how many B catches. A
-  baseline that ships a defective deck with exit `0` is the interesting case — it is what "no
-  validation layer" means in practice.
+* **Defect interception**: how many of the injected defects A ships versus how many B catches —
+  measured **0/5 vs 5/5**. A baseline that ships a defective deck with exit `0` is the interesting
+  case: it is what "no validation layer" means in practice.
 * **Delivered verification artefacts**: whether the run produced an evidence map, a gate report, a
   render manifest and a `result.json`, and whether those are internally consistent (sha256/bytes
   re-checked). A can only produce a `.pptx`.
@@ -78,34 +78,58 @@ comparison can be re-run by anyone.
   cells are a falsifiable demonstration of the validation layer, not a sample of all the ways an
   academic talk can go wrong.
 * **Not all defects are caught.** If a cell is not intercepted, it is reported as not intercepted.
-  Rounding "3/4" up to "4/4" in prose is exactly the kind of claim this Skill refuses to make.
+  Rounding an interception count up in prose — the "3/4 becomes 4/4" move — is exactly the kind of
+  claim this Skill refuses to make.
 
 ## 5. How to re-run it
 
-```bash
-python3 scripts/pt.py gain_check
+```
+python3 scripts/pt.py gain_check      # or: python3 scripts/gain_check.py
 ```
 
-Exit `0` = the Skill intercepted at least three of the injected defects **and** more than the
-baseline. The report is written next to the run (see `scripts/gain_check.py` for the exact
-`work/`-relative path) and contains the per-cell exit codes for both conditions.
+No arguments are needed: the harness builds its own synthetic fixture, runs both conditions and
+passes or fails itself. Exit `0` = the Skill intercepted at least three of the injected defects
+**and** more than the baseline. The report is written to `gain-ab.json` under `$DECK_GAIN_WORK` when
+that environment variable is set, otherwise under the system temp directory — it is **not** written
+into the delivery tree.
 
 ## 6. Measured results
 
-> **Pending integration.** At documentation-freeze time the pipeline scripts were still being written
-> by the other teammates in `CONTRACT.md` §2, so `gain_check` had not been executed. The numbers
-> below are the **targets** from `CONTRACT.md` §7.4, not measurements — they are marked as such and
-> must be replaced with real output before this file is quoted.
+Measured on 2026-11-23 ~13:48 +08:00 with `python3 scripts/pt.py gain_check` → **exit `0`**
+(`python3 scripts/gain_check.py` → exit `0` as well). Both conditions read their own synthetic
+fixture built by the harness; per defect cell the two conditions receive an identical spec.
 
-| Metric | Target (`CONTRACT.md` §7.4) | Measured |
+| Metric | Measured | Target (`CONTRACT.md` §7.4) |
 |---|---|---|
-| baseline (A) defects intercepted | 0 / 4 | **not yet run** |
-| Skill (B) defects intercepted | ≥ 3 / 4 | **not yet run** |
-| `gain_check` exit code | `0` | **not yet run** |
+| baseline (A) defects intercepted | **0 / 5** | 0 expected |
+| Skill (B) defects intercepted | **5 / 5** | ≥ 3 |
+| `gain_check` exit code | **`0`** | `0` |
+| per-cell gate that did the intercepting | D1→**A**, D2→**A**, D3→**B**, D4→**D**, D5→**E** | — |
+| B-side exit code per defect cell | `1` (a gate failed, as it should) | — |
 
-The A/B harness itself, the defect list and the acceptance rule are all fixed and reviewable now; only
-the observed counts are outstanding. When they are filled in, they are pasted from the command output
-with its exit code — never restated from memory.
+Verbatim console summary from that run:
+
+```
+D1  fabricated-number                target=A  A=False B=True  b_exit=1  b_fail=A,I,J
+D2  page-claim-without-evidence      target=A  A=False B=True  b_exit=1  b_fail=A,I,J
+D3  page-count-budget-mismatch       target=B  A=False B=True  b_exit=1  b_fail=B,I,J
+D4  notes-duplicate-body             target=D  A=False B=True  b_exit=1  b_fail=D,G,I,J
+D5  caption-not-matching-source      target=E  A=False B=True  b_exit=1  b_fail=E,I,J
+totals: A=0 B=5 (需 B>=3 且 B>A) → exit=0
+```
+
+Read that honestly: the B-side `b_fail` lists the **target gate first** and then the collateral gates
+that also complain about the deliberately broken cell (`I`/`J` follow because a defective spec has no
+proper Q&A block and a status that no longer matches). Only the target gate is the interception; the
+rest are consequences. The harness reports interception **counts**, not scores and not magnitudes.
+
+One further measured detail, stated because it is visible in the same report: the **clean control
+cell** (no injected defect) reports gates `I` and `J` as failing on the harness's *own* synthetic
+fixture — that fixture's spec carries fewer than three Q&A items and a status/gate disagreement. It is
+a property of the harness's throwaway fixture, not of the example in this bundle: the shipped
+`examples/synthetic-001` run passes **A–J 10/10 with exit `0`** (see
+[`rubric-mapping.md`](rubric-mapping.md) §"Evidence of execution"). It does not affect the
+interception counts above, which compare A and B on the same defective cells.
 
 ## 7. Why a controlled A/B at all
 
@@ -122,7 +146,7 @@ Written down so that no reader has to infer the boundary from the prose.
 
 | Claim | Made? | Evidence |
 |---|---|---|
-| the Skill **detects** the injected defect classes that the naive baseline ships | **yes** | `pt.py gain_check` per-cell exit codes (measured value pending integration) |
+| the Skill **detects** the injected defect classes that the naive baseline ships | **yes** | `pt.py gain_check` → exit `0`, **A 0/5 vs B 5/5** (D1→A, D2→A, D3→B, D4→D, D5→E), measured 2026-11-23 |
 | the Skill **delivers verification artefacts** the baseline does not (evidence map, gate report, render manifest, `result.json`) | **yes** | the output listing of both conditions in the same report |
 | the deck is **reproducible** from the same spec | **yes** | gate G's two-build sha256 comparison |
 | an unknown `output_contract` key is filled truthfully instead of emptied | **yes** | `pt.py contract_matrix` |

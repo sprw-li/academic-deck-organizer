@@ -154,11 +154,13 @@ def write_result(out_dir: Path, input_dir: Path, work_dir: Path,
     rm = load_json(out_dir / "render_manifest.json", {}) or {}
 
     artifacts: dict = {}
+    # Self-referential files are excluded: hashing a report we are about to rewrite is
+    # always stale, and it made `pt.py check` non-idempotent (gate H failed on run 2+).
+    _SELF_REF = {"result.json", "validation_report.json"}
     for p in sorted(out_dir.rglob("*")):
         if p.is_file():
             rel = p.relative_to(out_dir).as_posix()
-            if rel == "result.json":
-                # self-reference: hashing the file we are about to rewrite is always stale
+            if rel in _SELF_REF:
                 continue
             artifacts[rel] = {"path": rel, "rel": rel, "bytes": p.stat().st_size,
                               "sha256": sha256_file(p)}

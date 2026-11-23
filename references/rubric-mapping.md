@@ -45,9 +45,9 @@ Commands assume the Skill root as CWD; `PY=python3`.
 
 | # | Scoring point | 分值 | Artefact that carries it | Proving command / gate |
 |---|---|---|---|---|
-| 5 | **质量增益** — "相同输入、相同听众与时长设定下，加载作品后相比基础 Agent 是否提升汇报内容组织质量" (`task.md:43`) | 15 | the controlled A/B: `scripts/gain_check.py` + [`references/measured-gain.md`](measured-gain.md); the deterministic gate suite doing the interception | `$PY scripts/pt.py gain_check` → exit `0` when the Skill intercepts **≥ 3 of 4** injected defects (fabricated number → gate A/`E903`, claim without evidence → gate A, page count/timing off budget → gate B, notes duplicating bullets → gate D, caption mismatch → gate E) while the naive baseline ships them. Every cell records **both** exit codes. Clean run: the baseline produces a `.pptx` and no `result.json`; the Skill produces the full artefact set with a gate report. **Not a model-quality benchmark** — it measures defect interception and delivered verification artefacts |
+| 5 | **质量增益** — "相同输入、相同听众与时长设定下，加载作品后相比基础 Agent 是否提升汇报内容组织质量" (`task.md:43`) | 15 | the controlled A/B: `scripts/gain_check.py` + [`references/measured-gain.md`](measured-gain.md); the deterministic gate suite doing the interception | `$PY scripts/pt.py gain_check` → **exit `0`, measured A 0/5 vs B 5/5** injected defects intercepted (D1 fabricated number → gate **A**, D2 claim without evidence → gate **A**, D3 page count ≠ budget → gate **B**, D4 notes duplicate the body → gate **D**, D5 caption mismatch → gate **E**), measured 2026-11-23. Every cell records **both** exit codes. The pass rule is `exit 0` iff `B ≥ 3 and B > A`, and the harness reports **counts only** — no score, no magnitude. **Not a model-quality benchmark** |
 | 6 | **效率增益** — "是否减少从论文到可讲稿的人工修改量、返工页数与导出修正次数" (`task.md:43`) | 5 | one `spec.json` → all artefacts in one build; `deck_plan.json` as a single intermediate; byte-identical rebuild; `pt.py edit` for revisions | one `$PY scripts/pt.py build --spec /app/work/spec.json --work /app/work --out /app/output` writes deck + plan + notes + evidence map + Q&A together, so there is no cross-software round-trip; gate **G** measures a byte-identical rebuild, which is what removes "which version did I send?" rework; revisions go through `$PY scripts/pt.py edit …` + rebuild instead of re-authoring. **No runtime speedup is claimed** — no stopwatch measurement was taken |
-| 7 | **增益可验证性** — "是否通过公平对照证明质量或效率改善" (`task.md:43`) | 5 | the fair-comparison protocol itself: identical fixture for both conditions, identical injected spec per defect cell, both exit codes recorded; `contract_matrix.py` (adversarial `output_contract` key sets); `selftest.py` (injected-defect negatives) | `$PY scripts/pt.py gain_check` → exit `0`; `$PY scripts/pt.py contract_matrix` → exit `0` (every declared key non-empty, `case_id` preserved); `$PY scripts/pt.py selftest` → exit `0` (≥18 checks incl. ≥8 injected-defect negatives). All three are case-independent and can be re-run against another case |
+| 7 | **增益可验证性** — "是否通过公平对照证明质量或效率改善" (`task.md:43`) | 5 | the fair-comparison protocol itself: identical fixture for both conditions, identical injected spec per defect cell, both exit codes recorded; `contract_matrix.py` (adversarial `output_contract` key sets); `selftest.py` (injected-defect negatives) | `$PY scripts/pt.py gain_check` → **exit `0`** (measured `A=0 B=5`); `$PY scripts/pt.py contract_matrix` → exit `0` (every declared key non-empty, `case_id` preserved); `$PY scripts/pt.py selftest` → **exit `0`, 24/24 checks** (incl. injected-defect negatives). All three are case-independent and can be re-run against another case |
 
 ## 创新增益 — 15 points
 
@@ -70,7 +70,7 @@ Commands assume the Skill root as CWD; `PY=python3`.
 | # | Scoring point | 分值 | Artefact that carries it | Proving command / gate |
 |---|---|---|---|---|
 | 14 | **文档完整性** — "使用说明、依赖、模板、导出设置、示例、适用范围与维护信息是否齐全" (`task.md:46`) | 3 | `README.md` (§1 dependencies, §2 install, §3 quickstart, §4 CLI + exit codes, §5 inputs/outputs, §6 template and export parameters, §8 reuse, §9 budget, §10 maintenance, §11 licence) + seven `references/*.md` + `examples/README.md` | `$PY _shared/tools/validate_skill_submission.py <dir>` → exit `0`; completeness is checkable by listing: `$PY -c "import os;print(sorted(os.listdir('references')))"` → the seven referenced files; every machine-checkable claim in `README.md` names the command that produced it |
-| 15 | **资源可复用性** — "题集、页级金标准、叙事模板、模板文件、导出脚本等资源能否被他人复用" (`task.md:46`) | 4 | `examples/synthetic-001/expected/spec.json` (a complete authored DeckSpec: 9 pages, 17 evidence items, 4 Q&A) as a copy-and-rewrite template; `examples/synthetic-001/input/**` as a case skeleton; `scripts/make_fixture.py` as a template **and** fixture generator; the case-independent gate suite as a regression check | the fixture regenerates with `$PY scripts/make_fixture.py --out D` and yields a real template (11 custom layouts, `Deck Master`) plus a real 3-page PDF; the example spec's internal rules are re-checked by the derivation tool that produced it (`problems: []`); reuse procedure in `README.md` §8 and `examples/README.md`. The gate suite is pointed at any new case unchanged |
+| 15 | **资源可复用性** — "题集、页级金标准、叙事模板、模板文件、导出脚本等资源能否被他人复用" (`task.md:46`) | 4 | `examples/synthetic-001/expected/spec.json` (a complete authored DeckSpec: 9 pages, 18 evidence items, 4 Q&A) as a copy-and-rewrite template; `examples/synthetic-001/input/**` as a case skeleton; `scripts/make_fixture.py` as a template **and** fixture generator; the case-independent gate suite as a regression check | the fixture regenerates with `$PY scripts/make_fixture.py --out D` and yields a real template (11 custom layouts, `Deck Master`) plus a real 3-page PDF; the example is validated by the real pipeline — **`pt.py run`/`check` → exit `0`, gates A–J 10/10 pass, `status: "ok"`** on 2026-11-23; reuse procedure in `README.md` §8 and `examples/README.md`. The gate suite is pointed at any new case unchanged |
 | 16 | **分享推广价值** — "是否沉淀可分享的汇报案例、页级组织方法、问答准备经验与真实应用价值" (`task.md:46`) | 3 | `examples/` (worked synthetic case: input + expected + prose), [`references/measured-gain.md`](measured-gain.md) (a **reusable A/B harness**), [`references/failure-modes.md`](failure-modes.md) §4 (transferable boundary lessons), [`references/runbook.md`](runbook.md) §3 (budget plan), `GITHUB_URL.txt` at the submission root | the example is complete and reproducible from one generator + one command (`examples/README.md`); the gain harness and contract matrix are case-independent; the synthetic labelling is checkable — `$PY -c "import glob,os;fs=[f for f in glob.glob('examples/**/*',recursive=True) if os.path.isfile(f)];print(sorted(f for f in fs if 'SYNTHETIC' not in open(f,encoding='utf-8',errors='replace').read().upper()))"` → the **only** entry is the bare data table `examples/synthetic-001/input/materials/results.csv` (CSV has no comment syntax, so it is labelled by its neighbours); the case brief, the task file, the paper excerpt, the figure notes, and all three files in `expected/` carry the banner in-file |
 
 ## GitHub 公开作品链接 — +5 points
@@ -124,23 +124,28 @@ Only commands actually run are listed with their exit codes. Anything else in th
 |---|---|---|
 | `$PY scripts/make_fixture.py --out work/verify/docs-examples/fixture` | `0` | writes `case.json`, `task.md`, 3 text materials, `slides-template.pptx` (11 custom layouts, master `Deck Master`, theme `Deck Theme`), 3-page `paper.pdf`, 800×600 `fig1.png`, `FIXTURE-MANIFEST.json` |
 | `$PY scripts/make_fixture.py --out <second dir>` + sha256 comparison | `0` | `slides-template.pptx` **byte-identical** across runs (`d4d7e8e5…`); `paper.pdf`/`fig1.png` are not byte-stable (matplotlib timestamp) |
-| `$PY work/verify/docs-examples/audit_commands.py --submission <dir>` (author-side tool, not shipped) | `0` | **79 documented command forms** checked against `CONTRACT.md` §4 **and** the shipped `pt.py --help` signatures: **0 problems** (15 forms explicitly marked unfrozen/non-invocation) |
-| `$PY work/verify/docs-examples/derive_examples.py --fixture … --examples …` (author-side tool, not shipped) | `0` | regenerated `examples/synthetic-001/**` from the fixture and asserted the §3.4 rules **plus** the newer ones: content-page evidence, absolute `media_path` → **9 pages, 17 evidence items, 4 Q&A, timing 690 s (4.17 % deviation), 0 problems** |
-| `$PY -c "…"` quote/locator check over `examples/…/spec.json` | `0` | every `source.quote` equals the exact text of its cited `#L` span; every numeric `value` occurs inside its own quote |
-| `$PY scripts/pt.py ingest/build/render/result/check/selftest/…` | **not run** | the pipeline scripts were not present at documentation freeze; the exit codes in this document are the frozen contract of `CONTRACT.md` §4/§5, not measurements |
-| `$PY _shared/tools/validate_skill_submission.py <submission-dir>` | **`0`** | `{"status":"ok","files":33,"bytes":603322,"name":"academic-deck-organizer","errors":[]}` (whole tree, 2026-11-23 ~12:35) |
+| `$PY work/verify/docs-examples/derive_examples.py --fixture … --examples …` (author-side tool, not shipped) | `0` | regenerates `examples/synthetic-001/**` from the fixture and asserts the §3.4 rules **plus** gate-A-style number traceability and the absolute-`media_path` rule → **9 pages, 18 evidence items, 4 Q&A, timing 690 s (4.17 % deviation), 0 problems** |
+| `$PY work/verify/docs-examples/measure_example.py --submission … --scratch …` (author-side tool, not shipped) | `0` | **the real run behind `examples/expected/`**: `make_fixture → ingest → inspect → pt.py run → check → result` all exit `0`; **gates A–J 10/10 pass**, `status: "ok"`, 18 artefacts, `deck.pptx` 84,165 B / sha256 `8ed411b6818e58df…`, `runtime.seconds` 32.34, `audit.determinism: byte-identical`; author-machine paths replaced with placeholders |
+| `$PY scripts/pt.py gain_check` and `$PY scripts/gain_check.py` | **`0`** | measured A **0/5** vs B **5/5** intercepted (D1→A, D2→A, D3→B, D4→D, D5→E); report in `$DECK_GAIN_WORK`/tempdir `gain-ab.json` |
+| `$PY work/verify/docs-examples/audit_commands.py --submission <dir>` (author-side tool, not shipped) | `0` | every documented command form checked against `CONTRACT.md` §4 **and** the shipped `pt.py --help` signatures: **0 problems** |
+| `$PY -c "…"` quote/locator check over `examples/…/spec.json` | `0` | every `source.quote` equals the exact text of its cited span; every numeric `value` occurs inside its own quote; every on-page number is traceable to a cited quote |
+| `$PY _shared/tools/validate_skill_submission.py <submission-dir>` | **`0`** | `{"status":"ok","files":…,"name":"academic-deck-organizer","errors":[]}` (whole tree, 2026-11-23 ~13:5x) |
+| `$PY scripts/pt.py selftest` / `contract_matrix` | **`0`** | `selftest` **24/24 PASS**; `contract_matrix` **5/5** |
 
-> **The honest summary.** The fixture tooling, the generated template/pdf/figure and the worked
-> example are executed and measured. The pipeline commands and the gate verdicts are documented from
-> the frozen contract and must be measured after integration — `examples/expected/result.json` carries
-> `synthetic_example: true` and `status: "partial"` for exactly that reason, so nothing here presents
-> an illustrative artefact as a measured one.
+> **The honest summary.** `examples/expected/result.json` and `deck_plan.json` are the output of the
+> real run above, not hand-written illustrations: they carry `synthetic_example: true`, a
+> `measurement` block naming the command sequence, real artefact bytes/sha256 and the real ten gate
+> verdicts. The only substitution in that run is disclosed in
+> `result.json.measurement.spec_note`: `figure.media_path` was rewritten from the container path
+> `/input/materials/fig1.png` to the local fixture file (same bytes, same sha256) because `/input`
+> exists only inside the runtime container. Author-machine absolute paths were replaced with
+> `<placeholders>`; no measured value was altered.
 
 ---
 
 ## Command-surface audit
 
-Every command line that appears in this bundle was checked mechanically (76 command forms) against
+Every command line that appears in this bundle was checked mechanically (79 command forms) against
 `CONTRACT.md` §4 **and** against the shipped argparse surface (`python3 scripts/pt.py <cmd> --help`,
 run 2026-11-23). Where §4 does not freeze a flag, the doc says so instead of inventing one. Result:
 **0 problems**.
@@ -149,14 +154,14 @@ run 2026-11-23). Where §4 does not freeze a flag, the doc says so instead of in
 |---|---|---|
 | `pt.py run --input /input --work /app/work --out /app/output` | §4 (explicit) | the one-shot chain; returns the `check` exit code. Shipped CLI also accepts optional `--respec` (not documented) |
 | `pt.py ingest --input /input --work /app/work` | §4 (`ingest.py` cli comment) | exit `0`/`2` |
-| `pt.py inspect --input /input --work /app/work [--template T]` | shipped CLI | writes `work/template-index.json`; §4's `pt.py` subcommand list does not mention `inspect` |
-| `pt.py plan --work W --input /input --out spec.json` | shipped CLI | the pass-through discovers the index from `--work`; §4's `deckplan.py plan` also has `--template-index` |
+| `pt.py inspect --input /input --work /app/work [--template T] [--out J]` | §4 (explicit) | writes `work/template-index.json` |
+| `pt.py plan --work W --input /input --out spec.json [--template-index T]` | §4 (explicit) | `--template-index` optional; the index is discovered from `--work` when it is omitted |
 | `pt.py build --spec S --work W --out O` | §4 (`build.py` cli comment) | exit `0`/`2`/`4` |
 | `pt.py check --out O --spec S --work W` | §4 (`validate.py` cli comment) | exit `0`/`1`/`3`/`2` |
-| `pt.py render --out O [--dpi 144]` | shipped CLI | the deck is taken from `<out>/deck.pptx`; renderer-unavailable is a returned dict, not an exit code |
+| `pt.py render --out O [--dpi 144]` | §4 (explicit) | the pass-through takes the deck from `<out>/deck.pptx`; renderer-unavailable is a returned dict, not an exit code |
 | `pt.py result --out O --input /input --work W [--status S]` | **not frozen** in §4 | matches the shipped CLI; the docs say so |
 | `pt.py edit --spec S --edits E --out S2` | **not frozen** in §4 | matches the shipped CLI; the docs say so |
-| `pt.py selftest` / `contract_matrix` / `gain_check` | §4 (subcommand list) | no flags documented; none used |
+| `pt.py selftest` / `contract_matrix` / `gain_check` | §4 (subcommand list) | **no flags**; `gain_check` now runs with no arguments at all |
 | `scripts/template.py inspect --template X [--out Y]` | §4 (`template.py` cli comment) | the §4-frozen module form of `pt.py inspect` |
 | `scripts/deckplan.py plan --work W --input DIR [--template-index T] --out SPEC` | §4 (`deckplan.py` cli comment) | the module form, used when an index must be pinned |
 | `scripts/render.py render --pptx P --out O [--dpi 144]` | §4 (`render.py` cli comment) | the module form, used when the deck is not at `<out>/deck.pptx` |
@@ -168,19 +173,29 @@ The auditor is `work/verify/docs-examples/audit_commands.py` (author-side, not s
 rejects an `evidence.py`/`measure.py` command line, an `pt.py` subcommand invoked with an extra flag,
 and a required flag that is missing.
 
-Known gaps in `CONTRACT.md` itself, reported rather than worked around (see the delivery report):
+Known gaps in `CONTRACT.md` itself, re-checked item by item on 2026-11-23 after the R2 contract
+updates. Only what is still true is listed:
 
 1. §4 leaves the flags of `pt.py result` and `pt.py edit` unspecified, although §3.6 and §7 depend on
-   `result`.
-2. §3.1 does not say whether `#r.<n>` counts a CSV header row as record 1.
-3. §3.1 lists `#L` for md/txt/csv only, so JSON materials have no line locator.
-4. §5 gate E's "marked `adapted`" caption has no corresponding field in §3.4's figure schema.
-5. §7.1's definition-of-done path `examples/synthetic-001/input` cannot be run byte-for-byte from the
+   `result`. (The shipped CLI accepts `result --out --input --work [--status]` and
+   `edit --spec --edits --out`; the docs list them and mark them unfrozen.)
+2. §7.1's definition-of-done path `examples/synthetic-001/input` cannot be run byte-for-byte from the
    shipped bundle, because §0 forbids shipping the template `.pptx` and the PDF that the run needs;
-   the reproducible command is `make_fixture.py` into a scratch directory first.
-6. §3.1 now requires an **absolute** `media_path` (plus `media_rel`), but §3.4's own DeckSpec snippet
-   still shows the relative form `"media_path": "materials/fig1.png"`. This bundle follows §3.1
-   (absolute), which is what gate A's figure exception and gate E's existence check actually need.
-7. §4's `pt.py` line lists the subcommands but not `inspect`, and neither the `plan` nor the `render`
-   pass-through accepts the module flags (`--template-index`, `--pptx`); the shipped `pt.py` is the
-   surface an agent will actually meet, so both forms are documented here.
+   the reproducible command is `make_fixture.py` into a scratch directory first (two-command smoke
+   run in `SKILL.md` §8 and [`runbook.md`](runbook.md)).
+3. §4's `pt.py render` pass-through takes only `--out`/`--dpi` while §4's own `render.py` module
+   signature takes `--pptx`. Both forms are documented; this is now stated in §4 itself, so it is a
+   documented split rather than a contradiction.
+
+**Resolved in R2 (were listed as gaps in the previous revision, now removed):**
+
+* `pt.py inspect` exists in §4 **and** in the shipped CLI (`--input --work [--template] [--out]`).
+* `pt.py plan` accepts `--template-index` in both §4 and the shipped CLI.
+* `#r.<n>` counts **data rows** (the CSV header is not record 1); JSON materials accept `#r.<n>` or
+  `#L<a>-L<b>` — both are registered by `ingest`.
+* Gate E's caption handling has a real field: `figure.caption_adapted` (bool), and a prefix-truncated
+  caption counts as `一致(截断)`.
+* §3.4's DeckSpec snippet now shows the **absolute** `media_path` that §3.1 requires, so the two
+  sections agree.
+* `pt.py selftest` is 24 checks (24/24 PASS, exit `0`), not the ≥18 floor; `gain_check` runs with no
+  arguments.

@@ -15,7 +15,9 @@ B 侧（本 Skill）：同一批产物过 ``validate.run_gates`` 的 A–J 闸�
   3. ``totals``：``a_total`` / ``b_total`` 与退出判据。
 
 退出码：0 当且仅当 ``b_total >= 3 且 b_total > a_total``；2 用法/IO；1 判据不满足。
-所有产物落在 ``--scratch``（默认 ``<work>/gain-ab-run``），报告写 ``--out``（默认 ``<work>/gain-ab.json``）。
+``--work`` 可选，缺省优先级 ``--work`` > ``DECK_GAIN_WORK`` > ``<tempdir>/deck-gain-check`` >
+``<cwd>/_gain_work``——**任何情况下都不落进脚本所在交付树**（避免把 pptx/pdf/png 混进提交包）。
+``--scratch`` / ``--out`` 默认跟随该 work（``<work>/gain-ab-run`` 与 ``<work>/gain-ab.json``）。
 
 依赖：python-pptx（真造 pptx）、Pillow（真造 PNG）。缺任一 → exit 2 并说明（不静默 pass）。
 """
@@ -24,9 +26,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -191,6 +195,25 @@ def inspect_template(p: Path) -> dict:
 # --------------------------------------------------------------------------- #
 # 夹具构造
 # --------------------------------------------------------------------------- #
+def normalize_zip(path: Path) -> None:
+    """固定 zip 成员时间戳为 1980-01-01（对齐交付树的 ``normalize.normalize_pptx``）。
+
+    **不加这一步，本脚本的确定性夹具就是 flaky 的**：python-pptx 的 ``save()`` 把当前本地时间写进
+    每个 zip 成员头，同一内容相隔 1 秒以上两次 save 的 sha256 就不同（实测见 task-3 的
+    evidence/09）。真实流水线已调用 ``normalize_pptx``，这里必须对齐，否则 gate G 会随秒边界随机失败。
+    """
+    import zipfile
+    tmp = path.with_suffix(path.suffix + ".norm")
+    with zipfile.ZipFile(path) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+        for info in sorted(zin.infolist(), key=lambda i: i.filename):
+            data = zin.read(info.filename)
+            ni = zipfile.ZipInfo(info.filename, date_time=(1980, 1, 1, 0, 0, 0))
+            ni.compress_type = info.compress_type
+            ni.external_attr = info.external_attr
+            zout.writestr(ni, data)
+    tmp.replace(path)
+
+
 def build_deck(template: Path, spec: dict, media: Path, out: Path, *,
                notes_override=None) -> Path:
     from pptx import Presentation
@@ -221,6 +244,7 @@ def build_deck(template: Path, spec: dict, media: Path, out: Path, *,
         slide.notes_slide.notes_text_frame.text = say
     out.parent.mkdir(parents=True, exist_ok=True)
     prs.save(str(out))
+    normalize_zip(out)          # 固定 zip 时间戳（否则两次 build 哈希不同 → gate G flaky）
     return out
 
 
@@ -319,13 +343,13 @@ def build_case(root: Path, *, naive: bool = False) -> dict:
                    "timing_s": 65}, "strength": "moderate"},
     ]
     qa = [
-        {"id": "Q1", "question": "倍数如何归一化？", "answer": "以对照组为基准做相对比较。",
+        {"id": "Q1", "question": "倍数如何归一化？", "answer": "以对照组为基准做相对比较，并在独立实验日重复。",
          "evidence_ids": ["E1"], "slide_ids": ["P4"], "risk": "high", "category": "data"},
-        {"id": "Q2", "question": "为何不做机制实验？", "answer": "当前数据只支持表型结论。",
+        {"id": "Q2", "question": "为何不做机制实验？", "answer": "当前数据只能支持表型结论，机制需额外实验。",
          "evidence_ids": ["E3"], "slide_ids": ["P5"], "risk": "medium", "category": "mechanism"},
-        {"id": "Q3", "question": "重复性如何保证？", "answer": "独立实验日做三次重复。",
+        {"id": "Q3", "question": "重复性如何保证？", "answer": "全部测定在独立实验日完成三次重复。",
          "evidence_ids": ["E4"], "slide_ids": ["P3"], "risk": "medium", "category": "control"},
-        {"id": "Q4", "question": "与对照是否自洽？", "answer": "方向与对照一致。",
+        {"id": "Q4", "question": "与对照是否自洽？", "answer": "方向与对照组比较后保持一致。",
          "evidence_ids": ["E1"], "slide_ids": ["P4"], "risk": "low", "category": "other"},
     ]
     spec = {
@@ -525,9 +549,46 @@ def inject(root: Path, kind: str) -> None:
     jdump(sp, spec)
 
 
+def default_work_dir() -> tuple:
+    """`--work` 缺省时的落点。**任何情况下都不落在脚本所在树内**（交付树不能污染）。
+
+    优先级（Lead 2026-11-23 裁定）：``--work``（调用方传）> ``DECK_GAIN_WORK``
+    > ``<tempdir>/deck-gain-check`` > ``<cwd>/_gain_work``。
+    **必须用 ``os.makedirs(..., exist_ok=True)``**——本工作区实测：Windows 上 ``tempfile.mkdtemp()``
+    建出的 0o700 目录即便在盘上也写不进去。返回 ``(Path, 来源说明)``。
+    """
+    attempts = [(Path(tempfile.gettempdir()) / "deck-gain-check", "tempdir/deck-gain-check"),
+                (Path.cwd() / "_gain_work", "cwd/_gain_work")]
+    errors = []
+    for cand, src in attempts:
+        try:
+            os.makedirs(cand, exist_ok=True)
+            probe = cand / ".gain-write-probe"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink()
+            # 硬约束：绝不落在交付树（脚本目录及其祖先）内
+            if _inside(cand, HERE.parent) or _inside(cand, HERE):
+                errors.append("%s 落在交付树内，拒绝使用" % cand)
+                continue
+            return cand, src
+        except Exception as exc:                                            # noqa: BLE001
+            errors.append("%s: %s" % (cand, exc))
+    raise RuntimeError("gain_check 找不到可写的树外工作目录: %s" % "; ".join(errors))
+
+
+def _inside(child: Path, parent: Path) -> bool:
+    try:
+        c, p = str(child.resolve()).lower(), str(parent.resolve()).lower()
+        return c == p or c.startswith(p.rstrip("\\/") + "\\") or c.startswith(p.rstrip("\\/") + "/")
+    except Exception:                                                       # noqa: BLE001
+        return False
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="gain_check.py", description="受控 A/B 拦截计数（DoD §7.4）")
-    ap.add_argument("--work", required=True, help="工作目录（报告默认落这里）")
+    ap.add_argument("--work", default=None,
+                    help="工作目录（可选；缺省见 default_work_dir：DECK_GAIN_WORK > "
+                         "<脚本目录>/../_gain_work > <tempdir>/deck-gain-check）")
     ap.add_argument("--out", default=None, help="gain-ab.json 路径（默认 <work>/gain-ab.json）")
     ap.add_argument("--scratch", default=None, help="夹具根目录（默认 <work>/gain-ab-run）")
     ap.add_argument("--json", action="store_true", help="stdout 打印完整报告")
@@ -540,10 +601,21 @@ def main(argv=None) -> int:
             print("gain_check 需要 %s 才能真造夹具: %s" % (mod, exc), file=sys.stderr)
             return 2
 
-    work = Path(args.work)
+    if args.work:
+        work, work_src = Path(args.work), "cli:--work"
+        os.makedirs(work, exist_ok=True)
+    elif os.environ.get("DECK_GAIN_WORK"):
+        work, work_src = Path(os.environ["DECK_GAIN_WORK"]), "env:DECK_GAIN_WORK"
+        os.makedirs(work, exist_ok=True)
+    else:
+        work, work_src = default_work_dir()
+        if _inside(work, HERE.parent) or _inside(work, HERE):
+            print("[warn] 缺省 work 目录落在交付树内: %s（不应发生，请检查 default_work_dir）" % work,
+                  file=sys.stderr)
     out_path = Path(args.out) if args.out else work / "gain-ab.json"
     scratch = Path(args.scratch) if args.scratch else work / "gain-ab-run"
     scratch.mkdir(parents=True, exist_ok=True)
+    work.mkdir(parents=True, exist_ok=True)
 
     clean = scratch / "clean"
     build_case(clean)
@@ -582,6 +654,8 @@ def main(argv=None) -> int:
         "schema_version": SCHEMA_VERSION,
         "tool": "gain_check.py",
         "purpose": "统计注入缺陷被拦截的**数量**；不报告分数、不报告提升幅度",
+        "work_dir": str(work), "work_dir_source": work_src,
+        "scratch": str(scratch), "out": str(out_path),
         "a_strategy": "naive-transfer：摘要/Results 逐段倒页、不查证据、不管页数时长、备注复制正文、图注改写",
         "b_strategy": "validate.run_gates（CONTRACT §5 闸门 A–J）",
         "clean_case": {"path": str(clean), "skill_exit": clean_skill["exit"],
@@ -609,6 +683,12 @@ def main(argv=None) -> int:
         print("clean 夹具 A–J: exit=%s failed=%s warned=%s" % (clean_skill["exit"],
                                                             clean_skill["failed_gates"],
                                                             clean_skill["warned"]))
+        if clean_skill["failed_gates"] or clean_skill["warned"]:
+            # 归因必须干净：clean 不全 pass 会污染"A 拦截 vs B 拦截"的统计，必须打印原因
+            for gid in clean_skill["failed_gates"] + clean_skill["warned"]:
+                print("   [%s] %s" % (gid, clean_skill["detail"].get(gid, "")))
+                for f in clean_skill["failures"].get(gid, []):
+                    print("      F:", f)
         for c in conditions:
             print("%-3s %-32s target=%-2s A=%-5s B=%-5s b_exit=%-2s b_fail=%s"
                   % (c["defect_id"], c["class"], c["target_gate"],
@@ -618,6 +698,11 @@ def main(argv=None) -> int:
         print("totals: A=%d B=%d (需 B>=3 且 B>A) → exit=%d, report=%s"
               % (a_total, b_total, report["exit"], out_path))
     return report["exit"]
+
+
+def cli(argv=None) -> int:
+    """pt.py 的入口（`pt.py gain_check` 调 `cli([])`，无参数也必须能跑完并 exit 0）。"""
+    return main(argv if argv is not None else [])
 
 
 if __name__ == "__main__":

@@ -1,200 +1,320 @@
 {
   "schema_version": 1,
+  "deck_title": "Damp-heat phase stability of a mixed-halide perovskite absorber",
   "case_id": "SYNTHETIC-DECK-001",
-  "deck": "deck.pptx",
-  "slide_count": 9,
+  "language": "en",
+  "spec": {
+    "case_id": "SYNTHETIC-DECK-001",
+    "deck_title": "Damp-heat phase stability of a mixed-halide perovskite absorber",
+    "language": "en",
+    "slide_count": 9,
+    "budget": {
+      "minutes": 12,
+      "slide_count": 9,
+      "qa_minutes": 3
+    }
+  },
+  "template": {
+    "path": "<scratch-in>\\materials\\slides-template.pptx",
+    "index_path": "materials/slides-template.pptx",
+    "sha256": "d4d7e8e5c9fd6c674c0e222a6163729f000264891dfd43cc2cc118f8d576a6b2"
+  },
+  "deck": {
+    "path": "deck.pptx",
+    "bytes": 84165,
+    "sha256": "8ed411b6818e58df941a443208f1d7bc96a71eb895f8dc530c25d157c8b4aec0",
+    "slides": 9
+  },
+  "warnings": [
+    "P6: body placeholder Content Placeholder 2 narrowed to 2862326 EMU to avoid the figure (placement=right)"
+  ],
   "slides": [
     {
-      "index": 1,
+      "index": 0,
       "slide_id": "P1",
+      "role": "title",
       "layout": "Deck Title",
-      "layout_index": 0,
-      "placeholders": [
-        {
-          "name": "Title 1",
-          "idx": 0,
-          "used": true,
-          "text_field": "claim"
-        },
-        {
-          "name": "Subtitle 2",
-          "idx": 1,
-          "used": true,
-          "text_field": "bullets"
-        }
-      ],
+      "layout_source": "spec",
       "claim": "Can caesium incorporation remove the damp-heat failure route of a mixed-halide absorber?",
       "evidence_ids": [
         "E1"
+      ],
+      "strength": "moderate",
+      "bullets": [
+        "1000 h at 85 C and 85 % RH",
+        "24 devices per group, 2 absorbers",
+        "Group meeting, 12 minutes"
       ],
       "figure": null,
       "notes": {
         "say": "Frame the question, not the paper. The room knows phase segregation, so the opening has to define what a satisfactory answer would look like: a retention number, a mechanism-side measurement, and an explicit statement of what is still unknown.",
         "timing_s": 25,
-        "checkpoint": "Question on screen before the first data slide"
+        "checkpoint": "Question on screen before the first data slide",
+        "written": true
       },
-      "strength": "moderate"
-    },
-    {
-      "index": 2,
-      "slide_id": "P2",
-      "layout": "Deck Section",
-      "layout_index": 2,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "ctrTitle",
+          "name": "Title 1",
+          "geom": {
+            "left": 685800,
+            "top": 2130425,
+            "width": 7772400,
+            "height": 1470025
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Text Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "subTitle",
+          "name": "Subtitle 2",
+          "geom": {
+            "left": 1371600,
+            "top": 3886200,
+            "width": 6400800,
+            "height": 1752600
+          },
+          "used_for": "bullets"
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 1,
+      "slide_id": "P2",
+      "role": "hook",
+      "layout": "Deck Section",
+      "layout_source": "spec",
       "claim": "1000 h of damp heat separates the two absorbers: 73.8 % retention for the reference, 96.2 % with Cs",
       "evidence_ids": [
         "E1",
-        "E2"
+        "E2",
+        "E18"
+      ],
+      "strength": "strong",
+      "bullets": [
+        "Reference: 73.8 % of initial PCE",
+        "Cs-incorporated: 96.2 %",
+        "Same cycling conditions for both groups"
       ],
       "figure": null,
       "notes": {
-        "say": "Lead with the contrast. Both groups started near 21 %, so the entire gap at 1000 h is a difference in degradation rate, not in the starting point. Do not explain the mechanism yet; let the number sit for a moment before moving on.",
+        "say": "Lead with the contrast. Both groups started at nearly the same efficiency, so the entire gap at 1000 h is a difference in degradation rate, not in the starting point. Do not explain the mechanism yet; let the number sit for a moment before moving on.",
         "timing_s": 50,
-        "checkpoint": "Audience has seen 73.8 % vs 96.2 %"
+        "checkpoint": "Audience has seen the retention contrast",
+        "written": true
       },
-      "strength": "strong"
-    },
-    {
-      "index": 3,
-      "slide_id": "P3",
-      "layout": "Deck Content",
-      "layout_index": 1,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 722313,
+            "top": 4406900,
+            "width": 7772400,
+            "height": 1362075
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "body",
+          "name": "Text Placeholder 2",
+          "geom": {
+            "left": 722313,
+            "top": 2906713,
+            "width": 7772400,
+            "height": 1500187
+          },
+          "used_for": "bullets"
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 2,
+      "slide_id": "P3",
+      "role": "problem",
+      "layout": "Deck Content",
+      "layout_source": "spec",
       "claim": "The Cs-incorporated absorber trades a little initial efficiency for damp-heat stability",
       "evidence_ids": [
         "E9",
         "E10",
         "E11"
       ],
+      "strength": "strong",
+      "bullets": [
+        "Reference: 21.4 % at the start, 15.8 % after 1000 h",
+        "Cs-incorporated: 20.9 % at the start, 20.1 % after 1000 h",
+        "The gap opens over time, not at the start"
+      ],
       "figure": null,
       "notes": {
         "say": "Quantify the trade. The reference loses about a quarter of its efficiency; the Cs-incorporated film loses almost nothing. Say explicitly that this is an encapsulated device result under lab cycling and that nothing here is a module-level claim.",
         "timing_s": 75,
-        "checkpoint": "Trade-off stated as a rate difference"
+        "checkpoint": "Trade-off stated as a rate difference",
+        "written": true
       },
-      "strength": "strong"
-    },
-    {
-      "index": 4,
-      "slide_id": "P4",
-      "layout": "Deck Content",
-      "layout_index": 1,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 274638,
+            "width": 8229600,
+            "height": 1143000
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 457200,
+            "top": 1600200,
+            "width": 8229600,
+            "height": 4525963
+          },
+          "used_for": "bullets"
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 3,
+      "slide_id": "P4",
+      "role": "gap",
+      "layout": "Deck Content",
+      "layout_source": "spec",
       "claim": "What moves with retention is the delta-phase fraction, not the starting efficiency",
       "evidence_ids": [
         "E3",
-        "E4"
+        "E4",
+        "E16"
+      ],
+      "strength": "moderate",
+      "bullets": [
+        "X-ray diffraction collected every 100 h",
+        "Reference film: 31.5 % delta phase at the end",
+        "Cs-incorporated film: 4.2 %"
       ],
       "figure": null,
       "notes": {
         "say": "This is the part of the story that was not settled before: the amount of photo-inactive delta phase tracks how much efficiency survives. When asked why phase fraction should be the read-out, point at the ordering rather than at the absolute values.",
         "timing_s": 75,
-        "checkpoint": "Mechanism-side measurement introduced"
+        "checkpoint": "Mechanism-side measurement introduced",
+        "written": true
       },
-      "strength": "moderate"
-    },
-    {
-      "index": 5,
-      "slide_id": "P5",
-      "layout": "Deck Two Column",
-      "layout_index": 3,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 274638,
+            "width": 8229600,
+            "height": 1143000
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
-        },
-        {
-          "name": "Content Placeholder 3",
-          "idx": 2,
-          "used": true,
-          "text_field": "claim"
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 457200,
+            "top": 1600200,
+            "width": 8229600,
+            "height": 4525963
+          },
+          "used_for": "bullets"
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 4,
+      "slide_id": "P5",
+      "role": "method",
+      "layout": "Deck Two Column",
+      "layout_source": "spec",
       "claim": "Two groups, 24 encapsulated devices each, cycled at 85 C and 85 % RH for 1000 h",
       "evidence_ids": [
         "E16",
+        "E18",
         "E12"
+      ],
+      "strength": "strong",
+      "bullets": [
+        "1.2 M precursor, 150 C anneal for 20 min",
+        "Glass-glass edge seal",
+        "XRD every 100 h; 24 devices per group"
       ],
       "figure": null,
       "notes": {
         "say": "Keep this short and concrete: the room cares about the encapsulation stack and the sampling density, not about the spin-coating recipe. Mention that the same encapsulation and the same chamber were used for both groups, which is what makes the comparison meaningful.",
         "timing_s": 100,
-        "checkpoint": "Protocol and n on screen"
+        "checkpoint": "Protocol and sample size on screen",
+        "written": true
       },
-      "strength": "strong"
-    },
-    {
-      "index": 6,
-      "slide_id": "P6",
-      "layout": "Deck Figure",
-      "layout_index": 7,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 274638,
+            "width": 8229600,
+            "height": 1143000
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 457200,
+            "top": 1600200,
+            "width": 4038600,
+            "height": 4525963
+          },
+          "used_for": "bullets"
         },
         {
-          "name": "Text Placeholder 3",
           "idx": 2,
-          "used": true,
-          "text_field": "claim"
+          "type": "obj",
+          "name": "Content Placeholder 3",
+          "geom": {
+            "left": 4648200,
+            "top": 1600200,
+            "width": 4038600,
+            "height": 4525963
+          },
+          "used_for": null
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 5,
+      "slide_id": "P6",
+      "role": "results",
+      "layout": "Deck Figure",
+      "layout_source": "spec",
       "claim": "After 1000 h the delta-phase fraction is 31.5 % in the reference film and 4.2 % with Cs",
       "evidence_ids": [
         "E3",
@@ -203,38 +323,76 @@
         "E14",
         "E15"
       ],
+      "strength": "strong",
+      "bullets": [
+        "31.5 % vs 4.2 % delta phase at 1000 h",
+        "Read-out agrees with the efficiency ranking",
+        "Raw rows are in results.csv"
+      ],
       "figure": {
         "evidence_id": "E12",
-        "media_path": "/input/materials/fig1.png",
-        "media_rel": "materials/fig1.png",
-        "placement": "right"
+        "media_path": "<scratch-in>\\materials\\fig1.png",
+        "placement": "right",
+        "caption": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group).",
+        "resolved": "<scratch-in>\\materials\\fig1.png",
+        "inserted": true,
+        "placement_mode": "add_picture(placement=right)"
       },
       "notes": {
-        "say": "Walk the audience across the plot once, left to right. The reference curve bends upward after roughly 500 h while the Cs-incorporated curve stays flat, so the divergence starts mid-experiment. Offer the raw rows as the checkable source, not just the plot.",
+        "say": "Walk the audience across the plot once, left to right. The reference curve bends upward mid-experiment while the Cs-incorporated curve stays flat, so the divergence starts after the run is under way. Offer the raw rows as the checkable source, not just the plot.",
         "timing_s": 115,
-        "checkpoint": "Plot read left to right once, no re-reading"
+        "checkpoint": "Plot read left to right once, no re-reading",
+        "written": true
       },
-      "strength": "strong"
-    },
-    {
-      "index": 7,
-      "slide_id": "P7",
-      "layout": "Deck Content",
-      "layout_index": 1,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 273050,
+            "width": 3008313,
+            "height": 1162050
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 3575050,
+            "top": 273050,
+            "width": 2862326,
+            "height": 5853113
+          },
+          "used_for": "bullets"
+        },
+        {
+          "idx": 2,
+          "type": "body",
+          "name": "Text Placeholder 3",
+          "geom": {
+            "left": 457200,
+            "top": 1435100,
+            "width": 3008313,
+            "height": 4691063
+          },
+          "used_for": null
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": [
+        "body placeholder Content Placeholder 2 narrowed to 2862326 EMU to avoid the figure (placement=right)"
+      ]
+    },
+    {
+      "index": 6,
+      "slide_id": "P7",
+      "role": "results",
+      "layout": "Deck Content",
+      "layout_source": "spec",
       "claim": "Activation energy rises from 0.78 eV to 1.12 eV and T80 from 240 h to 1450 h",
       "evidence_ids": [
         "E5",
@@ -242,84 +400,161 @@
         "E7",
         "E8"
       ],
+      "strength": "preliminary",
+      "bullets": [
+        "0.78 eV -> 1.12 eV from Arrhenius analysis",
+        "T80: 240 h -> 1450 h",
+        "Same ordering as the phase-fraction result"
+      ],
       "figure": null,
       "notes": {
         "say": "Give the kinetic numbers as estimates, not constants: three temperatures is the minimum for a straight-line fit. If the room pushes, agree that the error bar is unknown and offer the raw data as the way to settle it later.",
         "timing_s": 95,
-        "checkpoint": "Kinetics stated as estimates"
+        "checkpoint": "Kinetics stated as estimates",
+        "written": true
       },
-      "strength": "preliminary"
-    },
-    {
-      "index": 8,
-      "slide_id": "P8",
-      "layout": "Deck Content",
-      "layout_index": 1,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 274638,
+            "width": 8229600,
+            "height": 1143000
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 457200,
+            "top": 1600200,
+            "width": 8229600,
+            "height": 4525963
+          },
+          "used_for": "bullets"
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 7,
+      "slide_id": "P8",
+      "role": "limitation",
+      "layout": "Deck Content",
+      "layout_source": "spec",
       "claim": "The claim is bounded by a 1000 h window, one encapsulation stack, 24 devices and three temperatures",
       "evidence_ids": [
         "E17"
+      ],
+      "strength": "moderate",
+      "bullets": [
+        "1000 h, single encapsulation stack",
+        "n = 24 devices per group",
+        "No outdoor or module-scale validation"
       ],
       "figure": null,
       "notes": {
         "say": "Say the limit before anyone asks for it. The honest sentence is that this shows a rate difference inside one stack, and that an extrapolated lifetime would need a longer window and more temperatures. Then stop talking.",
         "timing_s": 85,
-        "checkpoint": "A limitation is stated by us, not extracted from us"
+        "checkpoint": "A limitation is stated by us, not extracted from us",
+        "written": true
       },
-      "strength": "moderate"
-    },
-    {
-      "index": 9,
-      "slide_id": "P9",
-      "layout": "Deck Content",
-      "layout_index": 1,
       "placeholders": [
         {
-          "name": "Title 1",
           "idx": 0,
-          "used": true,
-          "text_field": "claim"
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 274638,
+            "width": 8229600,
+            "height": 1143000
+          },
+          "used_for": "title/claim"
         },
         {
-          "name": "Content Placeholder 2",
           "idx": 1,
-          "used": true,
-          "text_field": "bullets"
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 457200,
+            "top": 1600200,
+            "width": 8229600,
+            "height": 4525963
+          },
+          "used_for": "bullets"
         }
       ],
+      "textbox_fallbacks": [],
+      "warnings": []
+    },
+    {
+      "index": 8,
+      "slide_id": "P9",
+      "role": "conclusion",
+      "layout": "Deck Content",
+      "layout_source": "spec",
       "claim": "Cs incorporation keeps the black phase and retains 96.2 % of initial PCE after 1000 h",
       "evidence_ids": [
         "E1",
+        "E2",
+        "E7",
         "E13",
-        "E7"
+        "E18"
+      ],
+      "strength": "strong",
+      "bullets": [
+        "96.2 % retained vs 73.8 % for the reference",
+        "T80 extended from 240 h to 1450 h",
+        "Open item: outdoor validation, not covered here"
       ],
       "figure": null,
       "notes": {
         "say": "Close on the one sentence the room should remember, then hand over the open item. Do not re-read the agenda or re-list the slides; the conclusion is stronger when it is said once.",
         "timing_s": 70,
-        "checkpoint": "One memorable sentence, then Q&A"
+        "checkpoint": "One memorable sentence, then Q&A",
+        "written": true
       },
-      "strength": "strong"
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "title",
+          "name": "Title 1",
+          "geom": {
+            "left": 457200,
+            "top": 274638,
+            "width": 8229600,
+            "height": 1143000
+          },
+          "used_for": "title/claim"
+        },
+        {
+          "idx": 1,
+          "type": "obj",
+          "name": "Content Placeholder 2",
+          "geom": {
+            "left": 457200,
+            "top": 1600200,
+            "width": 8229600,
+            "height": 4525963
+          },
+          "used_for": "bullets"
+        }
+      ],
+      "textbox_fallbacks": [],
+      "warnings": []
     }
   ],
-  "totals": {
-    "timing_s": 690,
-    "minutes": 11.5,
-    "budget_minutes": 12,
-    "deviation_pct": 4.17
-  },
-  "note": "SYNTHETIC EXAMPLE - NOT AN OFFICIAL CASE: this plan is illustrative; regenerate it with a real build."
+  "synthetic_example": true,
+  "measurement": {
+    "measured_at": "2026-11-23 13:47 +08:00",
+    "kind": "real_pipeline_run",
+    "paths_sanitized": "author-machine paths replaced with <placeholders>"
+  }
 }

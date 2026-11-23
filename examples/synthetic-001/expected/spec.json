@@ -240,23 +240,35 @@
       }
     },
     {
+      "id": "E18",
+      "kind": "number",
+      "claim": "Two groups of 24 encapsulated devices, cycled at 85 C / 85 % RH for 1000 h",
+      "value": 24,
+      "unit": "devices",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L9-L10",
+        "quote": "but their phase behaviour under simultaneous damp heat is not settled. We cycled 24\nencapsulated devices per group at 85 C and 85 % relative humidity for 1000 h."
+      }
+    },
+    {
       "id": "E12",
       "kind": "figure",
       "claim": "Figure 1 caption: delta-phase fraction during damp-heat cycling",
       "source": {
-        "file": "figure-notes.json",
-        "locator": "figure-notes.json#fig.1",
+        "file": "fig1.png",
+        "locator": "fig1.png#fig.1",
         "quote": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group)."
       }
     },
     {
       "id": "E13",
       "kind": "table",
-      "claim": "Table 1 caption: photovoltaic parameters at 0 h and 1000 h",
+      "claim": "Table 1 columns recorded for every cycling sample",
       "source": {
-        "file": "figure-notes.json",
-        "locator": "figure-notes.json#tab.1",
-        "quote": "Table 1. Photovoltaic parameters of the reference and Cs-incorporated groups at 0 h and after 1000 h of damp-heat cycling (mean of 24 devices)."
+        "file": "results.csv",
+        "locator": "results.csv#tab.1",
+        "quote": "sample_id,hours,PCE_pct,Voc_V,Jsc_mA_per_cm2,FF_pct,delta_phase_fraction_pct"
       }
     }
   ],
@@ -288,7 +300,8 @@
       "claim": "1000 h of damp heat separates the two absorbers: 73.8 % retention for the reference, 96.2 % with Cs",
       "evidence_ids": [
         "E1",
-        "E2"
+        "E2",
+        "E18"
       ],
       "bullets": [
         "Reference: 73.8 % of initial PCE",
@@ -296,9 +309,9 @@
         "Same cycling conditions for both groups"
       ],
       "notes": {
-        "say": "Lead with the contrast. Both groups started near 21 %, so the entire gap at 1000 h is a difference in degradation rate, not in the starting point. Do not explain the mechanism yet; let the number sit for a moment before moving on.",
+        "say": "Lead with the contrast. Both groups started at nearly the same efficiency, so the entire gap at 1000 h is a difference in degradation rate, not in the starting point. Do not explain the mechanism yet; let the number sit for a moment before moving on.",
         "timing_s": 50,
-        "checkpoint": "Audience has seen 73.8 % vs 96.2 %"
+        "checkpoint": "Audience has seen the retention contrast"
       },
       "strength": "strong"
     },
@@ -313,9 +326,9 @@
         "E11"
       ],
       "bullets": [
-        "Reference: 21.4 % at 0 h, 15.8 % at 1000 h",
-        "Cs-incorporated: 20.9 % at 0 h, 20.1 % at 1000 h",
-        "The gap opens over time, not at t = 0"
+        "Reference: 21.4 % at the start, 15.8 % after 1000 h",
+        "Cs-incorporated: 20.9 % at the start, 20.1 % after 1000 h",
+        "The gap opens over time, not at the start"
       ],
       "notes": {
         "say": "Quantify the trade. The reference loses about a quarter of its efficiency; the Cs-incorporated film loses almost nothing. Say explicitly that this is an encapsulated device result under lab cycling and that nothing here is a module-level claim.",
@@ -331,11 +344,12 @@
       "claim": "What moves with retention is the delta-phase fraction, not the starting efficiency",
       "evidence_ids": [
         "E3",
-        "E4"
+        "E4",
+        "E16"
       ],
       "bullets": [
         "X-ray diffraction collected every 100 h",
-        "Reference film: 31.5 % delta phase after 1000 h",
+        "Reference film: 31.5 % delta phase at the end",
         "Cs-incorporated film: 4.2 %"
       ],
       "notes": {
@@ -352,6 +366,7 @@
       "claim": "Two groups, 24 encapsulated devices each, cycled at 85 C and 85 % RH for 1000 h",
       "evidence_ids": [
         "E16",
+        "E18",
         "E12"
       ],
       "bullets": [
@@ -362,7 +377,7 @@
       "notes": {
         "say": "Keep this short and concrete: the room cares about the encapsulation stack and the sampling density, not about the spin-coating recipe. Mention that the same encapsulation and the same chamber were used for both groups, which is what makes the comparison meaningful.",
         "timing_s": 100,
-        "checkpoint": "Protocol and n on screen"
+        "checkpoint": "Protocol and sample size on screen"
       },
       "strength": "strong"
     },
@@ -381,10 +396,10 @@
       "bullets": [
         "31.5 % vs 4.2 % delta phase at 1000 h",
         "Read-out agrees with the efficiency ranking",
-        "Data rows: results.csv lines 4 and 7"
+        "Raw rows are in results.csv"
       ],
       "notes": {
-        "say": "Walk the audience across the plot once, left to right. The reference curve bends upward after roughly 500 h while the Cs-incorporated curve stays flat, so the divergence starts mid-experiment. Offer the raw rows as the checkable source, not just the plot.",
+        "say": "Walk the audience across the plot once, left to right. The reference curve bends upward mid-experiment while the Cs-incorporated curve stays flat, so the divergence starts after the run is under way. Offer the raw rows as the checkable source, not just the plot.",
         "timing_s": 115,
         "checkpoint": "Plot read left to right once, no re-reading"
       },
@@ -392,8 +407,8 @@
       "figure": {
         "evidence_id": "E12",
         "media_path": "/input/materials/fig1.png",
-        "media_rel": "materials/fig1.png",
         "placement": "right",
+        "caption_adapted": false,
         "caption": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group)."
       }
     },
@@ -447,8 +462,10 @@
       "claim": "Cs incorporation keeps the black phase and retains 96.2 % of initial PCE after 1000 h",
       "evidence_ids": [
         "E1",
+        "E2",
+        "E7",
         "E13",
-        "E7"
+        "E18"
       ],
       "bullets": [
         "96.2 % retained vs 73.8 % for the reference",

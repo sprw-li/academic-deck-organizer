@@ -14,9 +14,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.dont_write_bytecode = True
@@ -32,10 +34,23 @@ def record(name: str, ok: bool, detail: str = "") -> None:
 
 
 def scratch_root() -> Path:
-    sub = HERE.parent
-    work = sub.parent
-    base = (work / "verify") if work.name == "work" else Path(".")
-    return base / "_selftest"
+    """Always an ABSOLUTE path outside the delivery tree.
+
+    The platform installs this Skill at /skills/weekly-skill, where the ancestor directory
+    is not called "work" — an earlier version returned a CWD-relative path in that layout and
+    the fixture/output halves landed in different directories (selftest then read empty dirs).
+    """
+    env = os.environ.get("DECK_SELFTEST_SCRATCH")
+    if env:
+        p = Path(env)
+    else:
+        p = Path(tempfile.gettempdir()) / "deck-selftest"
+    p = p.resolve()
+    here = Path(__file__).resolve()
+    if here.is_relative_to(p) or p.is_relative_to(HERE.parent):
+        # never let scratch live inside, or contain, the delivery tree
+        p = Path(tempfile.gettempdir()) / "deck-selftest-fallback"
+    return p
 
 
 # --------------------------------------------------------------------------- #

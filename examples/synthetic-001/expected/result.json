@@ -1,290 +1,435 @@
 {
   "case_id": "SYNTHETIC-DECK-001",
-  "status": "partial",
-  "synthetic_example": true,
-  "disclaimer": "SYNTHETIC EXAMPLE - NOT AN OFFICIAL CASE. This file illustrates the result.json shape for the interface; it was authored by hand and not produced by a live case run, so no gate verdict, byte count or sha256 for a built artefact is claimed here.",
+  "schema_version": 1,
+  "status": "ok",
+  "deck_title": "Damp-heat phase stability of a mixed-halide perovskite absorber",
+  "audience": {
+    "id": "group-meeting",
+    "prior_knowledge": "high",
+    "concerns": [
+      "is the comparison controlled",
+      "how strong is the stability claim",
+      "what is still unknown"
+    ],
+    "expected_challenges": [
+      "starting-efficiency matching",
+      "Arrhenius fit with three temperatures",
+      "extrapolation to outdoor lifetime"
+    ]
+  },
+  "budget": {
+    "minutes": 12,
+    "slide_count": 9,
+    "qa_minutes": 3
+  },
   "artifacts": {
-    "deck.pptx": {
-      "path": "output/deck.pptx",
-      "bytes": null,
-      "sha256": null,
-      "note": "not produced in the shipped bundle (UTF-8 text only)"
+    "deck.pdf": {
+      "path": "deck.pdf",
+      "rel": "deck.pdf",
+      "bytes": 180661,
+      "sha256": "bee3b6e6a761cf63c5160f0851bbe2b144088537fbe6246a60f561bc090b8ceb"
     },
-    "speaker-notes.md": {
-      "path": "output/speaker-notes.md",
-      "bytes": null,
-      "sha256": null,
-      "note": "not produced in the shipped bundle (UTF-8 text only)"
+    "deck.pptx": {
+      "path": "deck.pptx",
+      "rel": "deck.pptx",
+      "bytes": 84165,
+      "sha256": "8ed411b6818e58df941a443208f1d7bc96a71eb895f8dc530c25d157c8b4aec0"
+    },
+    "deck_plan.json": {
+      "path": "deck_plan.json",
+      "rel": "deck_plan.json",
+      "bytes": 16692,
+      "sha256": "cea1e46a1122cfa1ddfaa2a6a69f26d6b1450d624c4f5afa9615e13994da5533"
     },
     "evidence-map.json": {
-      "path": "output/evidence-map.json",
-      "bytes": null,
-      "sha256": null,
-      "note": "not produced in the shipped bundle (UTF-8 text only)"
+      "path": "evidence-map.json",
+      "rel": "evidence-map.json",
+      "bytes": 13313,
+      "sha256": "a17deb5330a6925dfe47986d670376abd87f89af63022f9740302d9f88562dd7"
+    },
+    "export_report.json": {
+      "path": "export_report.json",
+      "rel": "export_report.json",
+      "bytes": 10055,
+      "sha256": "95d4ec9f09eee8b00594582553f0d65e6396c217563831303bcfc67e6422b1d8"
+    },
+    "preview/page-0001.png": {
+      "path": "preview/page-0001.png",
+      "rel": "preview/page-0001.png",
+      "bytes": 67743,
+      "sha256": "015b0e468401248a0a2d47234d1d84c5ba1138b4e42db0f70b4c61a407f710a7"
+    },
+    "preview/page-0002.png": {
+      "path": "preview/page-0002.png",
+      "rel": "preview/page-0002.png",
+      "bytes": 77881,
+      "sha256": "dcd62ebf420c4fb587033a406a50e04e1d1dafb1dd425b11fd174afae39a13b3"
+    },
+    "preview/page-0003.png": {
+      "path": "preview/page-0003.png",
+      "rel": "preview/page-0003.png",
+      "bytes": 93449,
+      "sha256": "bd97e16b22c9aa6ae60bc49ca80511e22b7aaf9a078d91d3893a6c99cb285a41"
+    },
+    "preview/page-0004.png": {
+      "path": "preview/page-0004.png",
+      "rel": "preview/page-0004.png",
+      "bytes": 83284,
+      "sha256": "42a4fdba50eb351a2bc83715a3ce0d3e00a2e6a790e9092212855cf2ee583529"
+    },
+    "preview/page-0005.png": {
+      "path": "preview/page-0005.png",
+      "rel": "preview/page-0005.png",
+      "bytes": 87583,
+      "sha256": "27761fcbc16aa988c45643363f4bd3df81ab86af3e6279c20065597ac084ef8a"
+    },
+    "preview/page-0006.png": {
+      "path": "preview/page-0006.png",
+      "rel": "preview/page-0006.png",
+      "bytes": 168842,
+      "sha256": "49f50852b41a97a47d0cba63f564bc15baf7bd36b11fe62cedd6539be88accce"
+    },
+    "preview/page-0007.png": {
+      "path": "preview/page-0007.png",
+      "rel": "preview/page-0007.png",
+      "bytes": 82893,
+      "sha256": "48949a929d424972ea0a67bd7ae53afc0df5963f8cb157f72450aee2f4ac3c78"
+    },
+    "preview/page-0008.png": {
+      "path": "preview/page-0008.png",
+      "rel": "preview/page-0008.png",
+      "bytes": 84287,
+      "sha256": "1fd8b038b12c2633614067db365d3c68742bc8e00ddb957f8cf8e571818aa73d"
+    },
+    "preview/page-0009.png": {
+      "path": "preview/page-0009.png",
+      "rel": "preview/page-0009.png",
+      "bytes": 89211,
+      "sha256": "abc02ba1c48923bd5fd894f27ff76693c78044e698cfd42f169a8dcaea9134eb"
     },
     "qa-prep.md": {
-      "path": "output/qa-prep.md",
-      "bytes": null,
-      "sha256": null,
-      "note": "not produced in the shipped bundle (UTF-8 text only)"
-    },
-    "deck.pdf": {
-      "path": "output/deck.pdf",
-      "bytes": null,
-      "sha256": null,
-      "note": "not produced in the shipped bundle (UTF-8 text only)"
+      "path": "qa-prep.md",
+      "rel": "qa-prep.md",
+      "bytes": 1846,
+      "sha256": "b16a8ecde05977b1f63951e4412f5884006d830c7b3d7769a5178c3ec1a71e9c"
     },
     "render_manifest.json": {
-      "path": "output/render_manifest.json",
-      "bytes": null,
-      "sha256": null,
-      "note": "not produced in the shipped bundle (UTF-8 text only)"
+      "path": "render_manifest.json",
+      "rel": "render_manifest.json",
+      "bytes": 5507,
+      "sha256": "6be01039e351e00166c36f216201a064e1263a3998e8138ef0274684f06b8acc"
+    },
+    "renderer_manifest.json": {
+      "path": "renderer_manifest.json",
+      "rel": "renderer_manifest.json",
+      "bytes": 3727,
+      "sha256": "00128ea74c797e361e15d86d1c96cca7f79425e9f91c89b543ce6813522cc0dd"
+    },
+    "speaker-notes.md": {
+      "path": "speaker-notes.md",
+      "rel": "speaker-notes.md",
+      "bytes": 5241,
+      "sha256": "6fb9a838a369aaed81e17cedc36b4eef760c80d285bb5c036e686bc9fd83d202"
     }
   },
   "sources": [
     {
-      "file": "case.json",
-      "kind": "json",
-      "used": true,
-      "sha256": "b99811c8fe88b27cfac9f280ca48089957269f513c9a34a28a99bc22ff3e6e14"
-    },
-    {
-      "file": "materials/paper-excerpt.md",
-      "kind": "md",
-      "used": true,
-      "bytes": 2378,
-      "sha256": "fd874e36d68dcf902eb59ddeff8e60d085ec19fcc008c1a4420924d1159dadf2"
-    },
-    {
-      "file": "materials/results.csv",
-      "kind": "csv",
-      "used": true,
-      "bytes": 320,
-      "sha256": "cc2ead6ea3f4354239df555afe748c52d8bcc78ab9b0bd4320944b453045749c"
+      "file": "materials/fig1.png",
+      "kind": "image",
+      "sha256": "acfd665a22b00c5d702e478d335847116ae3fa7103d6e6d8683ae18ee44f06cb",
+      "bytes": 35612,
+      "parsed": true,
+      "used": true
     },
     {
       "file": "materials/figure-notes.json",
       "kind": "json",
-      "used": true,
+      "sha256": "e0850861b1379330a45248f77d78d7fb37653a982dc5e31c32b59469e5affb09",
       "bytes": 731,
-      "sha256": "e0850861b1379330a45248f77d78d7fb37653a982dc5e31c32b59469e5affb09"
+      "parsed": true,
+      "used": true
     },
     {
-      "file": "materials/slides-template.pptx",
-      "kind": "pptx",
-      "used": true,
-      "bytes": 27408,
-      "sha256": "d4d7e8e5c9fd6c674c0e222a6163729f000264891dfd43cc2cc118f8d576a6b2"
+      "file": "materials/paper-excerpt.md",
+      "kind": "markdown",
+      "sha256": "fd874e36d68dcf902eb59ddeff8e60d085ec19fcc008c1a4420924d1159dadf2",
+      "bytes": 2378,
+      "parsed": true,
+      "used": true
     },
     {
       "file": "materials/paper.pdf",
       "kind": "pdf",
-      "used": true,
+      "sha256": "49e275997a99fb09aa1c595a91783262cec437eec84f630690c0797a3a96dbac",
       "bytes": 37206,
-      "sha256": null,
-      "note": "regenerated by make_fixture.py; matplotlib embeds a timestamp, so the bytes differ between runs"
+      "parsed": true,
+      "used": true
     },
     {
-      "file": "materials/fig1.png",
-      "kind": "png",
-      "used": true,
-      "bytes": 35612,
-      "sha256": null,
-      "note": "regenerated by make_fixture.py; matplotlib embeds a timestamp, so the bytes differ between runs"
+      "file": "materials/results.csv",
+      "kind": "csv",
+      "sha256": "cc2ead6ea3f4354239df555afe748c52d8bcc78ab9b0bd4320944b453045749c",
+      "bytes": 320,
+      "parsed": true,
+      "used": true
+    },
+    {
+      "file": "materials/slides-template.pptx",
+      "kind": "pptx",
+      "sha256": "d4d7e8e5c9fd6c674c0e222a6163729f000264891dfd43cc2cc118f8d576a6b2",
+      "bytes": 27408,
+      "parsed": true,
+      "used": true
+    },
+    {
+      "file": "task.md",
+      "kind": "markdown",
+      "sha256": "8cc8eb3ece2edc82b84c3c6e600f45c8bdc0bd961312763ef1be7d8c40a486a4",
+      "bytes": 1515,
+      "parsed": true,
+      "used": true
     }
   ],
   "evidence": [
     {
       "id": "E1",
+      "kind": "number",
       "claim": "Cs-incorporated absorber retains 96.2 % of its initial PCE after 1000 h",
+      "value": 96.2,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L12-L12",
         "quote": "whereas the Cs-incorporated absorber retained 96.2 %."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E2",
+      "kind": "number",
       "claim": "Reference as-cast absorber retains 73.8 % of its initial PCE after 1000 h",
+      "value": 73.8,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L11-L11",
         "quote": "The reference as-cast absorber retained 73.8 % of its initial power conversion efficiency,"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E3",
+      "kind": "number",
       "claim": "Delta-phase fraction of the reference film after 1000 h",
+      "value": 31.5,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L13-L13",
         "quote": "The retained fraction tracks the delta-phase fraction measured by X-ray diffraction: 31.5 %"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E4",
+      "kind": "number",
       "claim": "Delta-phase fraction of the Cs-incorporated film after 1000 h",
+      "value": 4.2,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L14-L14",
         "quote": "for the reference film and 4.2 % for the Cs-incorporated film."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E5",
+      "kind": "number",
       "claim": "Activation energy for phase segregation, Cs-incorporated film",
+      "value": 1.12,
+      "unit": "eV",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L15-L15",
         "quote": "The activation energy for phase segregation rises from 0.78 eV to 1.12 eV, consistent with"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E6",
+      "kind": "number",
       "claim": "Activation energy for phase segregation, reference film",
+      "value": 0.78,
+      "unit": "eV",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L15-L15",
         "quote": "The activation energy for phase segregation rises from 0.78 eV to 1.12 eV, consistent with"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E7",
+      "kind": "number",
       "claim": "T80 lifetime of the reference film under damp heat",
+      "value": 240,
+      "unit": "h",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L16-L16",
         "quote": "the observed T80 lifetime increase from 240 h to 1450 h."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E8",
+      "kind": "number",
       "claim": "T80 lifetime of the Cs-incorporated film under damp heat",
+      "value": 1450,
+      "unit": "h",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L16-L16",
         "quote": "the observed T80 lifetime increase from 240 h to 1450 h."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E9",
+      "kind": "number",
       "claim": "Reference group initial PCE",
+      "value": 21.4,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L29-L29",
         "quote": "The reference group fell from 21.4 % to 15.8 % over 1000 h, while the Cs-incorporated"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E10",
+      "kind": "number",
       "claim": "Reference group PCE after 1000 h",
+      "value": 15.8,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L29-L29",
         "quote": "The reference group fell from 21.4 % to 15.8 % over 1000 h, while the Cs-incorporated"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E11",
+      "kind": "number",
       "claim": "Cs-incorporated group PCE after 1000 h",
+      "value": 20.1,
+      "unit": "%",
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L30-L30",
         "quote": "group fell from 20.9 % to 20.1 % (Table 1)."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E16",
+      "kind": "quote",
       "claim": "Sample preparation, encapsulation and XRD sampling protocol",
+      "value": null,
+      "unit": null,
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L23-L25",
         "quote": "Films were spun from a 1.2 M precursor solution and annealed at 150 C for 20 min.\nDevices were encapsulated with a glass-glass edge seal and cycled at 85 C and 85 %\nrelative humidity. X-ray diffraction was collected every 100 h."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E17",
+      "kind": "quote",
       "claim": "Stated scope of the study (window, stack, n, temperatures)",
+      "value": null,
+      "unit": null,
       "source": {
         "file": "paper-excerpt.md",
         "locator": "paper-excerpt.md#L43-L44",
         "quote": "The study covers 1000 h only, one encapsulation stack and 24 devices per group; the\nArrhenius fit uses three temperatures. Outdoor validation is not included."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E14",
+      "kind": "number",
       "claim": "Delta-phase fraction after 1000 h as recorded in the cycling data",
+      "value": 31.5,
+      "unit": "%",
       "source": {
         "file": "results.csv",
         "locator": "results.csv#L4-L4",
         "quote": "REF-1000h,1000,15.80,1.060,22.40,66.5,31.5"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E15",
+      "kind": "number",
       "claim": "Delta-phase fraction after 1000 h for the Cs group in the cycling data",
+      "value": 4.2,
+      "unit": "%",
       "source": {
         "file": "results.csv",
         "locator": "results.csv#L7-L7",
         "quote": "CS-1000h,1000,20.10,1.130,24.30,73.2,4.2"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
+    },
+    {
+      "id": "E18",
+      "kind": "number",
+      "claim": "Two groups of 24 encapsulated devices, cycled at 85 C / 85 % RH for 1000 h",
+      "value": 24,
+      "unit": "devices",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L9-L10",
+        "quote": "but their phase behaviour under simultaneous damp heat is not settled. We cycled 24\nencapsulated devices per group at 85 C and 85 % relative humidity for 1000 h."
+      },
+      "verified": true
     },
     {
       "id": "E12",
+      "kind": "figure",
       "claim": "Figure 1 caption: delta-phase fraction during damp-heat cycling",
+      "value": null,
+      "unit": null,
       "source": {
-        "file": "figure-notes.json",
-        "locator": "figure-notes.json#fig.1",
+        "file": "fig1.png",
+        "locator": "fig1.png#fig.1",
         "quote": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group)."
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     },
     {
       "id": "E13",
-      "claim": "Table 1 caption: photovoltaic parameters at 0 h and 1000 h",
+      "kind": "table",
+      "claim": "Table 1 columns recorded for every cycling sample",
+      "value": null,
+      "unit": null,
       "source": {
-        "file": "figure-notes.json",
-        "locator": "figure-notes.json#tab.1",
-        "quote": "Table 1. Photovoltaic parameters of the reference and Cs-incorporated groups at 0 h and after 1000 h of damp-heat cycling (mean of 24 devices)."
+        "file": "results.csv",
+        "locator": "results.csv#tab.1",
+        "quote": "sample_id,hours,PCE_pct,Voc_V,Jsc_mA_per_cm2,FF_pct,delta_phase_fraction_pct"
       },
-      "verified": false,
-      "match": "unverified-example"
+      "verified": true
     }
   ],
   "page_map": [
     {
       "slide_id": "P1",
+      "role": "title",
       "layout": "Deck Title",
       "claim": "Can caesium incorporation remove the damp-heat failure route of a mixed-halide absorber?",
       "evidence_ids": [
@@ -294,16 +439,19 @@
     },
     {
       "slide_id": "P2",
+      "role": "hook",
       "layout": "Deck Section",
       "claim": "1000 h of damp heat separates the two absorbers: 73.8 % retention for the reference, 96.2 % with Cs",
       "evidence_ids": [
         "E1",
-        "E2"
+        "E2",
+        "E18"
       ],
       "strength": "strong"
     },
     {
       "slide_id": "P3",
+      "role": "problem",
       "layout": "Deck Content",
       "claim": "The Cs-incorporated absorber trades a little initial efficiency for damp-heat stability",
       "evidence_ids": [
@@ -315,26 +463,31 @@
     },
     {
       "slide_id": "P4",
+      "role": "gap",
       "layout": "Deck Content",
       "claim": "What moves with retention is the delta-phase fraction, not the starting efficiency",
       "evidence_ids": [
         "E3",
-        "E4"
+        "E4",
+        "E16"
       ],
       "strength": "moderate"
     },
     {
       "slide_id": "P5",
+      "role": "method",
       "layout": "Deck Two Column",
       "claim": "Two groups, 24 encapsulated devices each, cycled at 85 C and 85 % RH for 1000 h",
       "evidence_ids": [
         "E16",
+        "E18",
         "E12"
       ],
       "strength": "strong"
     },
     {
       "slide_id": "P6",
+      "role": "results",
       "layout": "Deck Figure",
       "claim": "After 1000 h the delta-phase fraction is 31.5 % in the reference film and 4.2 % with Cs",
       "evidence_ids": [
@@ -348,6 +501,7 @@
     },
     {
       "slide_id": "P7",
+      "role": "results",
       "layout": "Deck Content",
       "claim": "Activation energy rises from 0.78 eV to 1.12 eV and T80 from 240 h to 1450 h",
       "evidence_ids": [
@@ -360,6 +514,7 @@
     },
     {
       "slide_id": "P8",
+      "role": "limitation",
       "layout": "Deck Content",
       "claim": "The claim is bounded by a 1000 h window, one encapsulation stack, 24 devices and three temperatures",
       "evidence_ids": [
@@ -369,12 +524,15 @@
     },
     {
       "slide_id": "P9",
+      "role": "conclusion",
       "layout": "Deck Content",
       "claim": "Cs incorporation keeps the black phase and retains 96.2 % of initial PCE after 1000 h",
       "evidence_ids": [
         "E1",
+        "E2",
+        "E7",
         "E13",
-        "E7"
+        "E18"
       ],
       "strength": "strong"
     }
@@ -386,7 +544,9 @@
       "slide_ids": [
         "P3",
         "P7"
-      ]
+      ],
+      "risk": "medium",
+      "category": "data"
     },
     {
       "id": "Q2",
@@ -394,7 +554,9 @@
       "slide_ids": [
         "P2",
         "P6"
-      ]
+      ],
+      "risk": "low",
+      "category": "mechanism"
     },
     {
       "id": "Q3",
@@ -402,14 +564,18 @@
       "slide_ids": [
         "P7",
         "P8"
-      ]
+      ],
+      "risk": "high",
+      "category": "limitation"
     },
     {
       "id": "Q4",
       "question": "How long would the Cs-incorporated absorber last outdoors?",
       "slide_ids": [
         "P8"
-      ]
+      ],
+      "risk": "high",
+      "category": "limitation"
     }
   ],
   "uncertainty": [
@@ -451,24 +617,247 @@
     }
   ],
   "audit": {
-    "gates": [],
-    "checks_passed": 0,
-    "checks_failed": 0,
+    "gates": [
+      {
+        "id": "A",
+        "status": "pass",
+        "detail": "evidence 18 项: locator 解析 18/18, quote 逐字命中 18/18 (另有无 caption figure 0 跳过), 数字在 quote 14/14; figure-evidence-without-caption 0 (media sha256 相符 0 / 不符 0 / 无法复核 0 / ambiguous 0); figure-caption-不可核验 0; 内容页证据覆盖 8/8 (免检 title/qa/backup 1); 悬空 evidence_ids 0; 内容页数字可溯源 106/106 (spec 50/50, pptx 文本 55/55, notes 1/1); evidence-map 覆盖 9/9 页; 解析器=module:evidence.py; module/fallback 判定分歧 0 项(剥重复 basename 0 次); ambiguous 文件 0",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "B",
+        "status": "pass",
+        "detail": "spec 页数 9 vs budget.slide_count 9; Σtiming_s 690.0 vs 12min=720s (偏离 4.2%); 内容页 claim 空 0, >160 字 0; story.arc 7 项缺 0; 非法 role 0",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "C",
+        "status": "pass",
+        "detail": "template-index: 11 layouts / 1 masters; spec 显式 layout 合法 9/9 (null 0); deck.pptx 9 页 vs spec 9 页; pptx layout ∈ 模板 9/9; pptx↔deck_plan 一致 9/9; 正文占位符 9/9 页 (内容页自建 textbox 滥用 0 页); pptx 字体 [] ∩ 模板 theme 0/0 (越界 0); 配色命中模板 4/4 (theme.source=template)",
+        "failures": [],
+        "warnings": [],
+        "notes": [
+          "占位符 geom 改动（height/width/left）不视为违规：只校验 is_placeholder、layout 合法性与一致性"
+        ]
+      },
+      {
+        "id": "D",
+        "status": "pass",
+        "detail": "deck.pptx 9 页: 备注非空 9/9 (缺 0), 整页位图 0/9(阈值面积 0.8); 内容页 bullets 空 0 (其中 notes↔claim ≥0.8 的 0); spec 内容页 bullets↔notes.say 最大相似度 0.26 (≥0.8 的 0/8, 非内容页免检 1); pptx 内容页 正文↔备注 最大相似度 0.10 (≥0.8 的 0/8, 非内容页免检 1)",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "E",
+        "status": "pass",
+        "detail": "带图页 1/9; figure.evidence_id ∈ 页 evidence_ids 1/1; media_path 可解析 1/1 (sha256 校验 1, 不符 0, 无法复核 0); caption 一致 1, 一致(截断) 0, adapted 0, 不符 0, 无法比对 0",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "F",
+        "status": "pass",
+        "detail": "deck.pdf 9 页 (pypdf=9, raw/Count=9, method=pypdf+raw, bytes=180661, %PDF-=True); deck.pptx 9 页; preview PNG 9 (preview_dir=preview); manifest pageCount=9 dpi=144.0 slide_size_in.w=13.3333 missingFonts=0; 页数四方一致=True; dpi 反推 一致 9 / 不符 0 / 无法核验 0; sha256 真算核验 21 / 不符 0 / 定位失败 0; 渲染器不可用=False",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "G",
+        "status": "pass",
+        "detail": "两次构建 sha256 8ed411b6818e vs 8ed411b6818e (一致, source=work/determinism.json, 声明互等=True); deck.pptx 实算 8ed411b6818e; work/_determinism/deck.pptx 实算 8ed411b6818e; 声明==实算 True; result.audit.determinism='byte-identical'",
+        "failures": [],
+        "warnings": [],
+        "notes": [
+          "声明 == 实算（8ed411b6818e），确定性证据与交付件一致"
+        ]
+      },
+      {
+        "id": "H",
+        "status": "pass",
+        "detail": "output_contract 6 键: 非空 6, 缺失 0, 空值 0 (case=<scratch-in>\\case.json); artifacts 18 项: 存在 18 (out_dir 直解 18, out_dir.parent 0, 原样 0), bytes 相符 18, sha256 相符 18; audit.unmapped_contract_keys 0",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "I",
+        "status": "pass",
+        "detail": "spec.qa 4 条 (阈值 ≥3); 引用页悬空 0; 引用 evidence 悬空 0; high 风险缺 answer 0; 空壳问答(q<5 字 或 a<10 字) 0; qa-prep.md 1846 B, 问题逐字收录 4/4; 引用页集合 9",
+        "failures": [],
+        "warnings": [],
+        "notes": []
+      },
+      {
+        "id": "J",
+        "status": "pass",
+        "detail": "闸门 fail 0 个 vs result.status='ok'; spec uncertainty 3 → result 收录 3; limitations 4 → 4; materials parsed=false 0 个 → 已声明 0; 无 caption 的 figure evidence 0 个 → uncertainty 已声明 0; 图注无材料可比 0 页 → uncertainty 已声明 0; 前置闸门状态=A:pass,B:pass,C:pass,D:pass,E:pass,F:pass,G:pass,H:pass,I:pass",
+        "failures": [],
+        "warnings": [],
+        "notes": [
+          {
+            "id": "A",
+            "status": "pass"
+          },
+          {
+            "id": "B",
+            "status": "pass"
+          },
+          {
+            "id": "C",
+            "status": "pass"
+          },
+          {
+            "id": "D",
+            "status": "pass"
+          },
+          {
+            "id": "E",
+            "status": "pass"
+          },
+          {
+            "id": "F",
+            "status": "pass"
+          },
+          {
+            "id": "G",
+            "status": "pass"
+          },
+          {
+            "id": "H",
+            "status": "pass"
+          },
+          {
+            "id": "I",
+            "status": "pass"
+          }
+        ]
+      }
+    ],
+    "checks_passed": 10,
     "checks_warned": 0,
+    "checks_failed": 0,
     "unfilled_fields": [],
     "unmapped_contract_keys": [],
-    "determinism": "unknown",
-    "note": "no gate run is claimed for this illustrative example"
+    "determinism": "byte-identical",
+    "render": {
+      "page_count": 9,
+      "dpi": 144,
+      "missing_fonts": [],
+      "renderer": {
+        "available": true,
+        "kind": "libreoffice-kit",
+        "node": "<local-path>",
+        "cli": "<local-path>",
+        "exe": null,
+        "source": "runtime-paths:hardcoded"
+      }
+    },
+    "spec_issues": []
   },
   "runtime": {
-    "seconds": null,
-    "tools": {},
-    "note": "not executed for this example; `python3 scripts/pt.py selftest` is the command that produces a measured runtime"
+    "seconds": 32.34,
+    "tools": {
+      "python_pptx": "1.0.2",
+      "renderer": {
+        "available": true,
+        "kind": "libreoffice-kit",
+        "node": "<node>",
+        "cli": "<libreoffice-kit>/lib/cli.js",
+        "exe": null,
+        "source": "runtime-paths:hardcoded"
+      },
+      "render_dpi": 144,
+      "missing_fonts": [],
+      "template_layouts": 11,
+      "template_resolved": true
+    },
+    "generated_at": "2026-11-23T05:47:43Z"
   },
-  "deck": "output/deck.pptx (not produced in the shipped bundle)",
-  "speaker_notes": "output/speaker-notes.md (not produced in the shipped bundle)",
-  "evidence_map": "output/evidence-map.json (not produced in the shipped bundle)",
-  "qa_prep": "output/qa-prep.md (not produced in the shipped bundle)",
-  "preview": "output/render_manifest.json + output/preview/*.png (not produced in the shipped bundle)",
-  "summary": "Illustrative synthetic example for case SYNTHETIC-DECK-001: 9 pages, 17 evidence items, 4 QA items. Not an official case result and not a measured run."
+  "deck": "deck.pptx",
+  "speaker_notes": "speaker-notes.md",
+  "evidence_map": "evidence-map.json",
+  "qa_prep": "qa-prep.md",
+  "preview": "render_manifest.json",
+  "summary": "Damp-heat phase stability of a mixed-halide perovskite absorber: 9 slides for 12 min; 18 evidence items, 4 prepared Q&A; status=ok; gates pass=10 warn=0 fail=0",
+  "synthetic_example": true,
+  "disclaimer": "SYNTHETIC EXAMPLE - NOT AN OFFICIAL CASE. Measured on the synthetic fixture produced by scripts/make_fixture.py; it is not an official challenge case and not an official score.",
+  "measurement": {
+    "measured_at": "2026-11-23 13:47 +08:00",
+    "kind": "real_pipeline_run",
+    "fixture": "scripts/make_fixture.py --out <scratch-in>",
+    "spec": "examples/synthetic-001/expected/spec.json",
+    "spec_note": "pages[].figure.media_path was rewritten from the container path /input/materials/fig1.png to the local fixture file for this run, because /input exists only inside the runtime container; the file bytes (and the sha256 gate E checked) are the same. No other field differs from the shipped spec.json.",
+    "media_substituted_pages": [
+      "P6"
+    ],
+    "validation_report": {
+      "exit": 0,
+      "gates": [
+        [
+          "A",
+          "pass"
+        ],
+        [
+          "B",
+          "pass"
+        ],
+        [
+          "C",
+          "pass"
+        ],
+        [
+          "D",
+          "pass"
+        ],
+        [
+          "E",
+          "pass"
+        ],
+        [
+          "F",
+          "pass"
+        ],
+        [
+          "G",
+          "pass"
+        ],
+        [
+          "H",
+          "pass"
+        ],
+        [
+          "I",
+          "pass"
+        ],
+        [
+          "J",
+          "pass"
+        ]
+      ]
+    },
+    "commands": [
+      "make_fixture.py --out <scratch-in>",
+      "pt.py ingest --input <scratch-in> --work <scratch-work>",
+      "pt.py inspect --input <scratch-in> --work <scratch-work>",
+      "pt.py run --input <scratch-in> --work <scratch-work> --out <scratch-out>",
+      "pt.py check --out <scratch-out> --spec <scratch-work>/spec.json --work <scratch-work>",
+      "pt.py result --input <scratch-in> --work <scratch-work> --out <scratch-out>"
+    ],
+    "exit_codes": {
+      "make_fixture": 0,
+      "ingest": 0,
+      "inspect": 0,
+      "run": 0,
+      "check": 0,
+      "result-final": 0
+    },
+    "paths_sanitized": "author-machine absolute paths (interpreter, scratch dirs, renderer binaries) were replaced with <placeholders>; no measured value, hash or byte count was altered"
+  }
 }

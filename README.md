@@ -122,9 +122,9 @@ fixture (which first needs `python3 scripts/make_fixture.py --out /tmp/deck-fixt
 | `pt.py result` | `--out DIR --input DIR --work DIR [--status S]` | `result.json` with every `output_contract` key |
 | `pt.py check` | `--out DIR --spec SPEC --work DIR` | `validation_report.json` (gates A–J) |
 | `pt.py edit` | `--spec SPEC --edits EDITS.json --out SPEC2` | the edited spec, with the change appended to `change_records` |
-| `pt.py selftest` | — | ≥18 checks incl. ≥8 injected-defect negatives |
+| `pt.py selftest` | — | **24 checks, measured 24/24 PASS (exit `0`)** — incl. injected-defect negatives and a full-chain determinism check |
 | `pt.py contract_matrix` | — | ≥5 adversarial `output_contract` key sets |
-| `pt.py gain_check` | — | the controlled A/B report for 使用增益 |
+| `pt.py gain_check` | — | the controlled A/B report for 使用增益; **no arguments needed** (`gain-ab.json` lands in `$DECK_GAIN_WORK` or the system temp dir, not in the delivery tree) |
 | `scripts/template.py inspect` | `--template X [--out Y]` | `--out` omitted: print the index; the module-level form of `pt.py inspect` |
 | `scripts/ingest.py ingest` | `--input DIR --work DIR` | the module-level form of `pt.py ingest` |
 | `scripts/build.py build` | `--spec S --work W --out O` | the module-level form of `pt.py build` |
@@ -137,16 +137,17 @@ fixture (which first needs `python3 scripts/make_fixture.py --out /tmp/deck-fixt
 > hidden):
 > * `pt.py render` accepts only `--out`/`--dpi` and takes the deck from `<out>/deck.pptx`, whereas
 >   §4's module-level signature is `render --pptx P --out O [--dpi 144]`. Use
->   `scripts/render.py render --pptx …` when the deck lives outside `--out`.
-> * `pt.py inspect` exists in the shipped CLI although §4's `pt.py` subcommand list does not mention
->   it; `scripts/template.py inspect --template X --out Y` is the §4-frozen equivalent.
-> * `pt.py plan` does **not** accept `--template-index` (it discovers the index from `--work`),
->   although §4's `deckplan.py plan` signature includes it — use the module form when you must pin an
->   index file.
+>   `scripts/render.py render --pptx …` when the deck lives outside `--out`. §4 documents this
+>   pass-through split explicitly.
 > * the flags of `pt.py result` and `pt.py edit` are **not frozen** in §4 (only `run` is). The table
 >   above lists what the shipped `pt.py` accepts; confirm with `--help`.
 > * `scripts/evidence.py` / `scripts/measure.py` do have CLIs, but §4 leaves their argv shape
 >   undefined, so **no command line for either is documented anywhere in this bundle**.
+>
+> `pt.py inspect` and `pt.py plan --template-index` are **not** differences: §4 lists them, and the
+> shipped CLI implements them. Every command in this bundle was checked mechanically against §4 plus
+> the shipped argparse surface — see
+> [`references/rubric-mapping.md`](references/rubric-mapping.md) §"Command-surface audit".
 >
 > All four are reported to the Lead as contract-vs-implementation gaps, so that one surface can be
 > frozen before packaging. Every command in this bundle was checked mechanically against §4 plus the
@@ -221,11 +222,15 @@ renderer discovery order: [`references/template-and-render.md`](references/templ
 ## 7. Worked example
 
 See [`examples/README.md`](examples/README.md). `examples/synthetic-001/` is **synthetic and labelled
-as such** — a fictional damp-heat perovskite study, 9 pages with 17 evidence items and 4 Q&A items. It
+as such** — a fictional damp-heat perovskite study, 9 pages with 18 evidence items and 4 Q&A items. It
 demonstrates the interface end to end and must never be presented as an official case result.
-`expected/spec.json` and `expected/deck_plan.json` are complete and internally consistent;
-`expected/result.json` is **illustrative** (`synthetic_example: true`, `status: "partial"`, no claimed
-gate verdicts) until the pipeline has been run on it.
+`expected/spec.json` is the authored DeckSpec, `expected/deck_plan.json` and `expected/result.json`
+are the **measured output of a real pipeline run** on it (2026-11-23 ~13:47 +08:00: `status: "ok"`,
+gates **A–J 10/10 pass**, `exit 0`, `deck.pptx` 84,165 B / sha256 `8ed411b6…`, `runtime.seconds`
+32.34). They carry `synthetic_example: true` and a `measurement` block naming the run, so they are
+never mistaken for an official result. The run used the container-path `media_path` rewritten to the
+local fixture file (the same bytes) because `/input` exists only inside the runtime container — that
+single substitution is disclosed in `result.json.measurement.spec_note`.
 
 The binary materials (`slides-template.pptx`, `paper.pdf`, `fig1.png`) are generated, not shipped:
 
@@ -281,7 +286,13 @@ print('files',len(fs),'total_bytes',sum(os.path.getsize(f) for f in fs),'largest
 The official structural check is
 `python3 _shared/tools/validate_skill_submission.py <submission-dir>`, which must exit `0` and enforces
 all four limits plus the frontmatter and marked-example rules. **Measured `0`** on the whole tree at
-2026-11-23 ~12:35: `{"status":"ok","files":33,"bytes":603322,"name":"academic-deck-organizer","errors":[]}`.
+2026-11-23 ~13:5x: `{"status":"ok","files":33,"bytes":…,"name":"academic-deck-organizer","errors":[]}`.
+
+### Submission-root files that are not part of the Skill tree
+
+| File | Contents |
+|---|---|
+| `GITHUB_URL.txt` | **required by the platform** (`task.md` §"本题作品的 GitHub 公开链接"): line 1 = the public URL of this work, line 2 = the relative path of the work inside it. Shipped as `https://github.com/sprw-li/academic-deck-organizer` + `SKILL.md`. Verify it in a **logged-out** browser before submitting. |
 
 ## 10. Maintenance
 
@@ -324,6 +335,7 @@ all four limits plus the frontmatter and marked-example rules. **Measured `0`** 
 | File | Read it for |
 |---|---|
 | [`SKILL.md`](SKILL.md) | the Agent-facing procedure, gate table and failure table |
+| `GITHUB_URL.txt` (submission root) | the public link to this work and its path inside the repository |
 | [`references/spec-schema.md`](references/spec-schema.md) | every `spec.json` field, its rule and its allowed values |
 | [`references/runbook.md`](references/runbook.md) | the exact command sequence, exit codes, budget plan, recovery |
 | [`references/provenance-and-evidence.md`](references/provenance-and-evidence.md) | locator grammar, quote rules, `E901`–`E903`, the evidence ledger |

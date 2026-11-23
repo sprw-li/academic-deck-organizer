@@ -31,7 +31,7 @@ expensive avoidable mistake in the budget (see [`runbook.md`](runbook.md) §3).
 |---|---|---|
 | `<basename>#p.<n>` | page *n* (1-based) | PDF |
 | `<basename>#L<a>-L<b>` | lines *a* to *b* inclusive (1-based) | md, txt, csv |
-| `<basename>#r.<n>` | record *n* | csv, json/JSONL-style materials |
+| `<basename>#r.<n>` | record *n* — **data rows only**: for a CSV with a header row, `#r.1` is the first data row, not the header | csv, json |
 | `<basename>#fig.<n>` / `<basename>#tab.<n>` | figure / table *n* | materials with extracted figures/tables |
 | `<basename>#all` | the whole file | any |
 
@@ -45,13 +45,13 @@ Rules that follow from the grammar:
   the match.
 * A locator that does not resolve is `E901`. It is never silently treated as `#all`.
 
-> **Two ambiguities in the frozen grammar, flagged rather than guessed.** (1) `#r.<n>` does not say
-> whether record 1 of a CSV with a header row is the header or the first data row. (2) `#L` is
-> specified for md/txt/csv, so a JSON material has to be cited with `#r.<n>` or `#fig`/`#tab`.
-> The bundled example sidesteps both: it cites CSV rows with unambiguous line locators
-> (`results.csv#L4-L4`) and cites the JSON captions with semantic locators
-> (`figure-notes.json#fig.1`). Both gaps are reported to the Lead — they must be pinned down in
-> `ingest`/`evidence`, whichever way, *before* a case depends on them.
+> **Two earlier ambiguities, now ruled by the Lead and reflected above.** (1) `#r.<n>` counts
+> **data rows**, so a CSV header row is not record 1 — `#r.1` is the first data row. Line locators
+> (`#L<a>-L<b>`, 1-based over the raw file, header included) remain available and unambiguous, and
+> the bundled example uses them for CSV numbers. (2) `#L` was specified for md/txt/csv only; for a
+> JSON material both forms are registered and accepted — `#r.<n>` for a record and `#L<a>-L<b>` for a
+> line — so cite whichever is clearer. In the example the JSON captions are cited with the semantic
+> locators `#fig.1` / `#tab.1` instead.
 
 ---
 
@@ -114,14 +114,17 @@ The example uses all four locator families, deliberately:
 |---|---|---|
 | `#L<a>-L<b>` (single line) | `paper-excerpt.md#L12-L12` | markdown |
 | `#L<a>-L<b>` (line range) | `paper-excerpt.md#L23-L25` | markdown, a protocol spanning three lines |
-| `#L<a>-L<b>` on a table file | `results.csv#L4-L4` | CSV data row (see the `#r.<n>` ambiguity in §2) |
-| `#fig.<n>` / `#tab.<n>` | `figure-notes.json#fig.1`, `#tab.1` | JSON captions |
+| `#L<a>-L<b>` on a table file | `results.csv#L4-L4` | CSV data row (line locators stay available alongside `#r.<n>`) |
+| `#fig.<n>` / `#tab.<n>` | `fig1.png#fig.1` (harvested Figure 1 caption + `media_sha256`), `results.csv#tab.1` | registered figure / table spans |
 | `#p.<n>` | `paper.pdf#p.2` | the generated 3-page PDF |
 
-The bundled example deliberately prefers the unambiguous locator wherever two readings exist. Its
-17 items resolve to **12 distinct line spans** across two text materials (`paper-excerpt.md`,
-`results.csv`) plus **two semantic locators** (`#fig.1`, `#tab.1`); several items share a span because
-one sentence legitimately supports two numbers (the two activation energies, the two T80 lifetimes).
+The bundled example deliberately picks the locator that the *ingest* step actually registers, which
+is not always the file that happens to contain the text: the Figure 1 caption sits in
+`figure-notes.json`, but ingest harvests it and binds it to the image, so the citable span is
+`fig1.png#fig.1` (which is also what carries the media sha256 gate E verifies). Its 18 items resolve
+to **12 distinct line spans** across two text materials (`paper-excerpt.md`, `results.csv`) plus
+**two semantic locators**; several items share a span because one sentence legitimately supports two
+numbers (the two activation energies, the two T80 lifetimes).
 
 ## 5. Authoring order that avoids rewrites
 
@@ -141,16 +144,19 @@ materials.
 
 `ingest` extracts figures (with `caption`, an **absolute** `media_path`, a human-readable `media_rel`,
 `media_sha256`, pixel size, `dpi_estimate`) and tables (with `caption`, `rows`, `n_rows`, `n_cols`)
-when the material supports it. Binding rules:
+when the material supports it. `media_path` / `media_rel` / `media_sha256` live in
+`materials.json` (§3.1) — the DeckSpec's `pages[].figure` carries the absolute `media_path` only.
+Binding rules:
 
 * `pages[].figure.media_path` must be **absolute** (the form the renderer can open, e.g.
-  `/input/materials/fig1.png`) and must **exist** (gate **E**); `media_rel` (`materials/fig1.png`) is
+  `/input/materials/fig1.png`) and must **exist** (gate **E**). `media_rel` (in `materials.json`) is
   for humans and is never used to open anything.
 * `pages[].figure.evidence_id` must also appear in that page's `evidence_ids` (gate **E**) — a figure
   cannot support a page it is not cited on.
-* `figure.caption` should be the material's own caption. If you shorten or re-word it, mark the
-  adaptation; gate E fails an unmarked mismatch. (The `adapted` marker itself is not frozen in the
-  §3.4 schema — see [`template-and-render.md`](template-and-render.md) §5.)
+* `figure.caption` should be the material's own caption. If you shorten or re-word it, set
+  `caption_adapted: true`; gate **E** then records `adapted` instead of failing, and it also accepts a
+  **prefix-truncated** caption (a screenshot or layout-truncated form) as `一致(截断)`. An unmarked
+  mismatch is a failure.
 
 ### A figure with no caption — the one legitimate empty quote
 
@@ -166,7 +172,8 @@ For `kind: "figure"` gate A substitutes a different, checkable criterion:
 | the gap is declared | the empty-quote figure must appear in `uncertainty` (`autoplan` adds a `U2` entry for it automatically). An undeclared one is a gate **J** problem |
 
 If the material *does* carry a caption, cite it verbatim — that is strictly stronger evidence, and the
-bundled example does exactly that (its `E12` figure quote is the caption from `figure-notes.json`).
+bundled example does exactly that (its `E12` figure quote is the harvested caption registered
+against `fig1.png#fig.1`).
 
 A figure whose resolution or extraction failed belongs in `uncertainty`, not on a page pretending to
 carry visual evidence.

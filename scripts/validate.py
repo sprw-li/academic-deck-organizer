@@ -100,7 +100,10 @@ def _similarity(a, b) -> float:
     return round(difflib.SequenceMatcher(None, na, nb).ratio(), 4)
 
 
-_NUM_RE = re.compile(r"-?\d+(?:[.,]\d+)*(?:[eE][-+]?\d+)?")
+# 数字切分：逗号**只在「后接恰好 3 位数字」时**才算千分位。
+# 否则 CSV 行引用里的 `2.8,85` 会被当成一个数（`2.885`）→ 页内 2.8 / 85 被判"无出处"（CJK 场景实测误杀）。
+#   "1,234.5" → 1234.5 ｜ "2.8,85" → 2.8, 85 ｜ "1e-3" → 0.001
+_NUM_RE = re.compile(r"-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?")
 
 
 def _extract_numbers(text):
@@ -321,13 +324,22 @@ def read_pptx(path: Path) -> dict:
         return {"ok": False, "reason": "open-failed:%s" % exc}
     slide_area = int(prs.slide_width or 0) * int(prs.slide_height or 0)
     slides, fonts = [], set()
+    # 模板注入的页码/日期/页脚不是作者文本，不参与"页内数字溯源"
+    template_ph_types = ("SLIDE_NUMBER", "DATE", "FOOTER")
     for idx, slide in enumerate(prs.slides, 1):
         ph, tb, pics = [], [], []
+        author_chunks, tmpl_chunks = [], []
         for sh in slide.shapes:
             try:
                 is_ph = bool(sh.is_placeholder)
             except Exception:                                       # noqa: BLE001
                 is_ph = False
+            ph_type = ""
+            if is_ph:
+                try:
+                    ph_type = str(sh.placeholder_format.type)
+                except Exception:                                   # noqa: BLE001
+                    ph_type = ""
             txt = ""
             try:
                 if sh.has_text_frame:
@@ -338,8 +350,13 @@ def read_pptx(path: Path) -> dict:
                                 fonts.add(run.font.name)
             except Exception:                                       # noqa: BLE001
                 pass
+            if txt.strip():
+                if any(t in ph_type for t in template_ph_types):
+                    tmpl_chunks.append(txt)
+                else:
+                    author_chunks.append(txt)
             if is_ph:
-                ph.append({"name": sh.name, "text": txt})
+                ph.append({"name": sh.name, "text": txt, "type": ph_type})
             elif txt.strip():
                 tb.append({"name": sh.name, "text": txt})
             try:
@@ -364,6 +381,9 @@ def read_pptx(path: Path) -> dict:
             "index": idx, "layout": layout_name,
             "placeholders": ph, "textboxes": tb, "pictures": pics,
             "ph_text": ph_text, "tb_text": tb_text, "notes": _norm_ws(notes),
+            # 该页**全部作者文本**（占位符 + 自建 textbox；排除页码/日期/页脚）——gate A 的数字扫描面
+            "all_text": _norm_ws(" ".join(author_chunks)),
+            "template_text": _norm_ws(" ".join(tmpl_chunks)),
             "pic_area_ratio": round(biggest_pic / slide_area, 4) if slide_area else 0.0,
         })
     return {"ok": True, "slide_count": len(slides), "slides": slides,
@@ -673,6 +693,7 @@ def gate_A(ctx: Ctx) -> dict:
 
     resolved = quote_hit = quote_checked = num_hit = num_checked = no_value = ambiguous = 0
     fig_no_cap = 0
+    fig_quote_unverifiable = 0
     fig_media_ok = fig_media_bad = fig_media_warn = fig_media_ambiguous = 0
     for e in ev:
         src = e.get("source") or {}
@@ -688,6 +709,13 @@ def gate_A(ctx: Ctx) -> dict:
             failures.append("%s E901 未解析 %s#%s (%s)" % (eid, fn, loc, r.get("reason")))
             continue
         resolved += 1
+        # V11：figure evidence 的 locator 解析到**空 caption**（材料里根本没有可比图注）→
+        # quote 无锚点可核验 → warn（无法验证），并要求写进 uncertainty（gate J 会查）。
+        if kind == "figure" and _norm_ws(quote) and not _norm_ws(r.get("text")):
+            fig_quote_unverifiable += 1
+            warnings.append("%s figure evidence 的 %s#%s 解析到空 caption（材料无图注）→ quote 无法逐字"
+                            "核验，改判 warn 并要求写入 uncertainty" % (eid, fn, loc))
+            continue
 
         # CONTRACT §5 gate A：figure evidence 无 caption（quote 归一化后为空）→ 跳过 E902，
         # 改判「locator 可解析（已在上一步） + media 真实文件 sha256 == media_sha256」。
@@ -758,12 +786,17 @@ def gate_A(ctx: Ctx) -> dict:
         failures.append("evidence_ids 悬空 %d 项: %s"
                         % (len(dangling), ", ".join(dangling[:8])))
 
-    # §1.3 落地：**内容页**页内数字必须能在该页 evidence 的 quote 里找到
+    # §1.3 落地：**内容页**数字必须能在该页 evidence 的 quote 里找到出处。
+    # 扫描面 = 三处并集（V03+V06）：spec 文本 ∪ deck.pptx 实际形状文本（含自建 textbox）∪ notes_slide 文本。
+    # 只读 spec 会让"幻灯片上自建 textbox 写 99.9"或"只改备注写 77.7"绕过，A–J 全过。
     untraceable, page_num_total, page_num_ok = [], 0, 0
-    for p in pages:
+    SRC_KEYS = ("spec", "pptx", "notes")
+    src_tot = {k: 0 for k in SRC_KEYS}
+    src_ok = {k: 0 for k in SRC_KEYS}
+    px_slides = (ctx.pptx.get("slides") or []) if ctx.pptx.get("ok") else []
+    for idx, p in enumerate(pages):
         if p.get("role") not in CONTENT_ROLES:
             continue
-        page_text = " ".join([str(p.get("claim") or "")] + [str(b) for b in (p.get("bullets") or [])])
         quotes = []
         for eid in p.get("evidence_ids") or []:
             e = byid.get(eid)
@@ -774,12 +807,21 @@ def gate_A(ctx: Ctx) -> dict:
             e = byid.get(eid)
             if e:
                 quotes.append((e.get("source") or {}).get("quote") or "")
-        for raw, val in _extract_numbers(page_text):
-            page_num_total += 1
-            if any(q and ctx.num_ok(val, q) for q in quotes):
-                page_num_ok += 1
-            else:
-                untraceable.append("%s:%s" % (p.get("id"), raw))
+        sl = px_slides[idx] if idx < len(px_slides) else {}
+        texts = {
+            "spec": " ".join([str(p.get("claim") or "")] + [str(b) for b in (p.get("bullets") or [])]),
+            "pptx": str(sl.get("all_text") or ""),
+            "notes": str(sl.get("notes") or ""),
+        }
+        for src, txt in texts.items():
+            for raw, val in _extract_numbers(txt):
+                src_tot[src] += 1
+                page_num_total += 1
+                if any(q and ctx.num_ok(val, q) for q in quotes):
+                    src_ok[src] += 1
+                    page_num_ok += 1
+                else:
+                    untraceable.append("%s[%s]:%s" % (p.get("id"), src, raw))
     if untraceable:
         failures.append("内容页 %d 个数字在 evidence quote 中无出处: %s"
                         % (len(untraceable), ", ".join(untraceable[:8])))
@@ -802,15 +844,20 @@ def gate_A(ctx: Ctx) -> dict:
     detail = ("evidence %d 项: locator 解析 %d/%d, quote 逐字命中 %d/%d (另有无 caption figure %d 跳过), "
               "数字在 quote %d/%d; "
               "figure-evidence-without-caption %d (media sha256 相符 %d / 不符 %d / "
-              "无法复核 %d / ambiguous %d); 内容页证据覆盖 %d/%d (免检 title/qa/backup %d); "
+              "无法复核 %d / ambiguous %d); figure-caption-不可核验 %d; "
+              "内容页证据覆盖 %d/%d (免检 title/qa/backup %d); "
               "悬空 evidence_ids %d; "
-              "内容页数字可溯源 %d/%d; evidence-map 覆盖 %d/%d 页; 解析器=%s; "
+              "内容页数字可溯源 %d/%d (spec %d/%d, pptx 文本 %d/%d, notes %d/%d); "
+              "evidence-map 覆盖 %d/%d 页; 解析器=%s; "
               "module/fallback 判定分歧 %d 项(剥重复 basename %d 次); ambiguous 文件 %d"
               % (len(ev), resolved, len(ev), quote_hit, quote_checked, fig_no_cap,
                  num_hit, num_checked,
                  fig_no_cap, fig_media_ok, fig_media_bad, fig_media_warn, fig_media_ambiguous,
+                 fig_quote_unverifiable,
                  covered, need, exempt, len(dangling),
                  page_num_ok, page_num_total,
+                 src_ok["spec"], src_tot["spec"], src_ok["pptx"], src_tot["pptx"],
+                 src_ok["notes"], src_tot["notes"],
                  em_covered, len(pages), ctx.ev_source,
                  len(ctx.resolve_disagree), ctx.stripped_locators, ambiguous))
     if ctx.resolve_disagree:
@@ -825,18 +872,37 @@ def gate_A(ctx: Ctx) -> dict:
 # --------------------------------------------------------------------------- #
 # B — 叙事与预算
 # --------------------------------------------------------------------------- #
+def _as_number(v):
+    """显式强转（V10）：数字、或能转的数字串 → float；否则 None（不许静默降级成 warn）。"""
+    if isinstance(v, bool) or v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        try:
+            return float(v.strip())
+        except ValueError:
+            return None
+    return None
+
+
 def gate_B(ctx: Ctx) -> dict:
     pages, meta = ctx.pages, ctx.meta
     budget = meta.get("budget") or {}
     story = meta.get("story") or {}
-    failures, warnings = [], []
+    failures, warnings, notes = [], [], []
 
     n_pages = len(pages)
-    want = budget.get("slide_count")
-    if not isinstance(want, int) or want <= 0:
-        warnings.append("budget.slide_count 缺失/非正整数: %r" % want)
-    elif n_pages != want:
-        failures.append("页数 %d ≠ budget.slide_count %d" % (n_pages, want))
+    sc_raw = budget.get("slide_count")
+    sc = _as_number(sc_raw)
+    if sc is None:
+        failures.append("budget.slide_count 缺失或类型错误: %r (%s)"
+                        % (sc_raw, type(sc_raw).__name__))
+    else:
+        if not isinstance(sc_raw, int):
+            notes.append("budget.slide_count 由 %s %r 强转为 %d" % (type(sc_raw).__name__, sc_raw, int(sc)))
+        if int(sc) != n_pages:
+            failures.append("页数 %d ≠ budget.slide_count %d" % (n_pages, int(sc)))
 
     tsum = 0.0
     for p in pages:
@@ -844,16 +910,22 @@ def gate_B(ctx: Ctx) -> dict:
             tsum += float((p.get("notes") or {}).get("timing_s") or 0)
         except Exception:                                           # noqa: BLE001
             pass
-    minutes = budget.get("minutes")
+    minutes_raw = budget.get("minutes")
+    minutes = _as_number(minutes_raw)
     dev = None
-    if isinstance(minutes, (int, float)) and minutes > 0:
+    if minutes is None:
+        failures.append("budget.minutes 缺失或类型错误: %r (%s)" % (minutes_raw, type(minutes_raw).__name__))
+    elif minutes <= 0:
+        failures.append("budget.minutes 非正数: %r" % minutes_raw)
+    else:
+        if not isinstance(minutes_raw, (int, float)):
+            notes.append("budget.minutes 由 %s %r 强转为 %.2f" % (type(minutes_raw).__name__,
+                                                               minutes_raw, minutes))
         target = float(minutes) * 60.0
         dev = abs(tsum - target) / target
         if dev > TIMING_TOLERANCE:
             failures.append("Σtiming_s %.1f 偏离 budget.minutes=%.2fmin(%.0fs) %.1f%% > %.0f%%"
                             % (tsum, minutes, target, dev * 100, TIMING_TOLERANCE * 100))
-    else:
-        warnings.append("budget.minutes 缺失，Σtiming_s=%.1f 无法比对" % tsum)
 
     empty_claim, long_claim = [], []
     for p in pages:
@@ -881,13 +953,23 @@ def gate_B(ctx: Ctx) -> dict:
     if bad_role:
         failures.append("role 不在枚举内: %s" % ",".join(bad_role))
 
-    detail = ("spec 页数 %d vs budget.slide_count %s; Σtiming_s %.1f vs %.2fmin=%.0fs (%s); "
-              "内容页 claim 空 %d, >%d 字 %d; story.arc %d 项缺 %s; 非法 role %d"
-              % (n_pages, want, tsum, float(minutes or 0), float(minutes or 0) * 60,
+    type_note = ""
+    if sc_raw is not None and not isinstance(sc_raw, int):
+        type_note += " [slide_count 类型错误: %s]" % type(sc_raw).__name__
+    elif sc_raw is None:
+        type_note += " [slide_count 缺失]"
+    if minutes_raw is not None and not isinstance(minutes_raw, (int, float)):
+        type_note += " [minutes 类型错误: %s]" % type(minutes_raw).__name__
+    elif minutes_raw is None:
+        type_note += " [minutes 缺失]"
+    detail = ("spec 页数 %d vs budget.slide_count %s; Σtiming_s %.1f vs %smin=%.0fs (%s); "
+              "内容页 claim 空 %d, >%d 字 %d; story.arc %d 项缺 %s; 非法 role %d%s"
+              % (n_pages, sc_raw, tsum, minutes_raw if minutes is not None else "?",
+                 float(minutes or 0) * 60,
                  ("偏离 %.1f%%" % (dev * 100)) if dev is not None else "无法比对",
                  len(empty_claim), CLAIM_MAX_CHARS, len(long_claim),
-                 len(arc), ",".join(missing_arc) or "0", len(bad_role)))
-    return _g("B", _status(failures, warnings), detail, failures, warnings)
+                 len(arc), ",".join(missing_arc) or "0", len(bad_role), type_note))
+    return _g("B", _status(failures, warnings), detail, failures, warnings, notes)
 
 
 # --------------------------------------------------------------------------- #
@@ -1033,6 +1115,7 @@ def gate_D(ctx: Ctx) -> dict:
 
     # 去重检查只判内容页（CONTRACT §5 适用范围）
     sims_spec = []                       # [(page_id, role, sim)]
+    empty_bullets, claim_copy = [], []
     for p in pages:
         pid, role = str(p.get("id")), p.get("role")
         notes_obj = p.get("notes") or {}
@@ -1040,6 +1123,12 @@ def gate_D(ctx: Ctx) -> dict:
         bullets = " ".join(str(b) for b in (p.get("bullets") or []))
         if role in CONTENT_ROLES and say is None:
             warnings.append("%s (内容页) notes 缺 say 字段" % pid)
+        # V12：内容页 bullets 为空 + notes 照抄 claim（相似度 ≥0.8）→ 等同于没有讲稿
+        if role in CONTENT_ROLES and not _norm_ws(bullets) and say is not None:
+            empty_bullets.append(pid)
+            sim_claim = _similarity(say, p.get("claim"))
+            if sim_claim >= NOTES_SIM_LIMIT:
+                claim_copy.append("%s=%.2f" % (pid, sim_claim))
         if say is None:
             continue
         if not _norm_ws(say):
@@ -1049,6 +1138,9 @@ def gate_D(ctx: Ctx) -> dict:
                 warnings.append("%s.notes.say 为空但非内容页，仅告警" % pid)
             continue
         sims_spec.append((pid, role, _similarity(bullets, say)))
+    if claim_copy:
+        failures.append("内容页 bullets 为空且 notes 与 claim 相似度 ≥%.1f: %s"
+                        % (NOTES_SIM_LIMIT, ",".join(claim_copy)))
 
     spec_content = [(i, s) for i, r, s in sims_spec if r in CONTENT_ROLES]
     over_spec = [(i, s) for i, s in spec_content if s >= NOTES_SIM_LIMIT]
@@ -1067,11 +1159,13 @@ def gate_D(ctx: Ctx) -> dict:
                         % (NOTES_SIM_LIMIT, ",".join("%s=%.2f" % (i, s) for i, s in over_pptx)))
 
     detail = ("deck.pptx %s 页: 备注非空 %d/%d (缺 %d), 整页位图 %d/%d(阈值面积 %.1f); "
+              "内容页 bullets 空 %d (其中 notes↔claim ≥%.1f 的 %d); "
               "spec 内容页 bullets↔notes.say 最大相似度 %.2f (≥%.1f 的 %d/%d, 非内容页免检 %d); "
               "pptx 内容页 正文↔备注 最大相似度 %.2f (≥%.1f 的 %d/%d, 非内容页免检 %d)"
               % (px.get("slide_count") if px.get("ok") else "打不开",
                  len(pages) - len(no_notes) if px.get("ok") else 0, len(pages), len(no_notes),
                  len(bitmap), len(pages), FULL_PAGE_IMAGE_RATIO,
+                 len(empty_bullets), NOTES_SIM_LIMIT, len(claim_copy),
                  max_spec, NOTES_SIM_LIMIT, len(over_spec), len(spec_content), exempt_spec,
                  max_pptx, NOTES_SIM_LIMIT, len(over_pptx), len(pptx_content), exempt_pptx))
     return _g("D", _status(failures, warnings), detail, failures, warnings, notes)
@@ -1229,14 +1323,24 @@ def gate_F(ctx: Ctx) -> dict:
                             % (pdfinfo["pypdf"], pdfinfo["raw_count"]))
 
     # ---- (2) 页数四方一致 PNG == manifest.pageCount == pdf == pptx ----
-    counts = {"PNG": len(pngs), "manifest.pageCount": man_pc, "deck.pdf": pdf_n, "deck.pptx": pptx_pages}
-    present = {k: v for k, v in counts.items() if isinstance(v, int)}
-    if len(set(present.values())) > 1:
-        failures.append("页数不一致: " + " / ".join("%s=%s" % (k, v) for k, v in counts.items()))
-    if not isinstance(man_pc, int):
-        warnings.append("render_manifest.pageCount 缺失/非整数（%r）" % man_pc)
-    if isinstance(pptx_pages, int) and isinstance(man_pc, int) and pptx_pages != man_pc:
-        failures.append("render_manifest.pageCount %d ≠ deck.pptx %d 页" % (man_pc, pptx_pages))
+    # CONTRACT §5/§6：渲染器不可用是**诚实降级** → warn + status partial，pptx 仍交付，不得判 fail。
+    counts_consistent = "渲染器不可用(未核验)"
+    if unavailable:
+        warnings.append("渲染器不可用（reason=%r, renderer=%r）→ 无法核验导出/页数一致性；"
+                        "pptX 仍交付，需写入 uncertainty 并把 status 降为 partial"
+                        % (man.get("reason"), man.get("renderer") if isinstance(man, dict) else None))
+    else:
+        counts = {"PNG": len(pngs), "manifest.pageCount": man_pc, "deck.pdf": pdf_n,
+                  "deck.pptx": pptx_pages}
+        present = {k: v for k, v in counts.items() if isinstance(v, int)}
+        counts_consistent = (bool(len(set(present.values())) <= 1) if len(present) >= 2
+                             else "样本不足(%d)" % len(present))
+        if len(set(present.values())) > 1:
+            failures.append("页数不一致: " + " / ".join("%s=%s" % (k, v) for k, v in counts.items()))
+        if not isinstance(man_pc, int):
+            warnings.append("render_manifest.pageCount 缺失/非整数（%r）" % man_pc)
+        if isinstance(pptx_pages, int) and isinstance(man_pc, int) and pptx_pages != man_pc:
+            failures.append("render_manifest.pageCount %d ≠ deck.pptx %d 页" % (man_pc, pptx_pages))
 
     if not pngs:
         if unavailable:
@@ -1360,7 +1464,7 @@ def gate_F(ctx: Ctx) -> dict:
                  pdfinfo.get("bytes"), pdfinfo.get("is_pdf"), pptx_pages,
                  len(pngs), preview_dir.name, man_pc, man_dpi, w_in,
                  len(mf) if isinstance(mf, list) else mf,
-                 (len(set(present.values())) <= 1) if len(present) >= 2 else "样本不足(%d)" % len(present),
+                 counts_consistent,
                  dpi_rev_ok, dpi_rev_bad, dpi_unknown, sha_verified, sha_mismatch, sha_unresolved,
                  unavailable))
     return _g("F", _status(failures, warnings), detail, failures, warnings, notes)
@@ -1394,12 +1498,38 @@ def gate_G(ctx: Ctx) -> dict:
         return _g("G", _status(failures, warnings), detail, failures, warnings, notes)
 
     a, b, src = pair
-    if a != b:
+    # V04：声明的哈希必须与**实算**交叉核验——否则两个自造同值哈希就能骗过"确定性"。
+    deck = ctx.out_dir / "deck.pptx"
+    actual = _sha256_file(deck) if deck.is_file() else None
+    extra = ctx.work_dir / "_determinism" / "deck.pptx"
+    actual2 = _sha256_file(extra) if extra.is_file() else None
+    declared_ok = (a == b)
+    if not declared_ok:
         failures.append("两次构建 deck.pptx sha256 不同: %s ≠ %s (%s)" % (a[:12], b[:12], src))
-    if decl == "unknown" and a == b:
+    if actual is None:
+        warnings.append("out_dir/deck.pptx 不存在，声明哈希无法与实算比对")
+    elif a != actual:
+        failures.append("声明哈希与实算不符（疑似伪造/过期）: 声明 %s vs deck.pptx 实算 %s (source=%s)"
+                        % (a[:12], actual[:12], src))
+    elif a == b == actual:
+        notes.append("声明 == 实算（%s），确定性证据与交付件一致" % actual[:12])
+    if actual2 is not None and actual is not None and actual2 != actual:
+        failures.append("work/_determinism/deck.pptx 实算 %s ≠ 交付 deck.pptx %s"
+                        % (actual2[:12], actual[:12]))
+    if src == "deck_build1/2.pptx" and actual is not None and a == b and a != actual:
+        # 文件对本身是真证据（内部一致），但没覆盖交付件 → 不能据此声称 byte-identical
+        warnings.append("dek_build1/2 互相一致但均 ≠ 交付 deck.pptx（%s vs %s）→ 未覆盖交付件"
+                        % (a[:12], actual[:12]))
+    if decl == "byte-identical" and (failures or (actual is not None and a != actual)):
+        failures.append("result.audit.determinism='byte-identical' 与实算不符")
+    elif decl == "unknown" and declared_ok:
         warnings.append("result.audit.determinism=unknown 但存在相同哈希对（声明落后于证据）")
-    detail = ("两次构建 sha256 %s vs %s (%s, source=%s); result.audit.determinism=%r"
-              % (a[:12], b[:12], "一致" if a == b else "不同", src, decl))
+    detail = ("两次构建 sha256 %s vs %s (%s, source=%s, 声明互等=%s); "
+              "deck.pptx 实算 %s; work/_determinism/deck.pptx 实算 %s; "
+              "声明==实算 %s; result.audit.determinism=%r"
+              % (a[:12], b[:12], "一致" if declared_ok else "不同", src, declared_ok,
+                 actual[:12] if actual else "缺失", actual2[:12] if actual2 else "无",
+                 bool(actual and a == actual), decl))
     return _g("G", _status(failures, warnings), detail, failures, warnings, notes)
 
 
@@ -1425,7 +1555,9 @@ def gate_H(ctx: Ctx) -> dict:
             missing.append(k)
         else:
             v = res.get(k)
-            if v is None or (isinstance(v, (str, list, dict)) and len(v) == 0):
+            # V08：只填空白（"   "）不算非空
+            if v is None or (isinstance(v, (str, list, dict)) and len(v) == 0) \
+                    or (isinstance(v, str) and not v.strip()):
                 empty.append(k)
     if missing:
         failures.append("result.json 缺 output_contract 键: %s" % ",".join(missing))
@@ -1496,12 +1628,23 @@ def gate_I(ctx: Ctx) -> dict:
         qa = []
     if len(qa) < 3:
         failures.append("qa 条数 %d < 3" % len(qa))
-    dq_slide = dq_ev = high_no_ans = 0
+    dq_slide = dq_ev = high_no_ans = shell = 0
+    # V09：空壳问答阈值。**答案**要求 ≥10 字（"N/A"/"见上"/"有" 这类必须拦）；
+    # **问题**只要求 ≥5 字 —— 中文短问句（"重复性如何保证？" 8 字）是正常的，
+    # 用 10 字会制造假阳性（实测：绿夹具因此被误杀）。这是对 Lead 字面口径的**收紧-放宽说明**。
+    QA_ANSWER_MIN_CHARS = 10
+    QA_QUESTION_MIN_CHARS = 5
     for q in qa:
         qid = q.get("id")
         if q.get("risk") == "high" and not _norm_ws(q.get("answer")):
             high_no_ans += 1
             failures.append("%s high 风险缺 answer" % qid)
+        ans_n, q_n = _norm_ws(q.get("answer")), _norm_ws(q.get("question"))
+        if len(ans_n) < QA_ANSWER_MIN_CHARS or len(q_n) < QA_QUESTION_MIN_CHARS:
+            shell += 1
+            failures.append("%s 疑似空壳（question %d 字 / answer %d 字，阈值 q≥%d a≥%d）: q=%r a=%r"
+                            % (qid, len(q_n), len(ans_n), QA_QUESTION_MIN_CHARS,
+                               QA_ANSWER_MIN_CHARS, q_n[:30], ans_n[:30]))
         for s in q.get("slide_ids") or []:
             if str(s) not in page_ids:
                 dq_slide += 1
@@ -1525,8 +1668,11 @@ def gate_I(ctx: Ctx) -> dict:
         if qa and covered < len(qa):
             warnings.append("qa-prep.md 仅收录 %d/%d 问题（其余可能被改写）" % (covered, len(qa)))
     detail = ("spec.qa %d 条 (阈值 ≥3); 引用页悬空 %d; 引用 evidence 悬空 %d; "
-              "high 风险缺 answer %d; qa-prep.md %d B, 问题逐字收录 %d/%d; 引用页集合 %d"
-              % (len(qa), dq_slide, dq_ev, high_no_ans, prep_bytes, covered, len(qa), len(page_ids)))
+              "high 风险缺 answer %d; 空壳问答(q<%d 字 或 a<%d 字) %d; "
+              "qa-prep.md %d B, 问题逐字收录 %d/%d; 引用页集合 %d"
+              % (len(qa), dq_slide, dq_ev, high_no_ans, QA_QUESTION_MIN_CHARS,
+                 QA_ANSWER_MIN_CHARS, shell,
+                 prep_bytes, covered, len(qa), len(page_ids)))
     return _g("I", _status(failures, warnings), detail, failures, warnings)
 
 
@@ -1587,16 +1733,48 @@ def gate_J(ctx: Ctx, prior_gates) -> dict:
         failures.append("无 caption 的 figure evidence 未在 result.uncertainty 声明: %s"
                         % ",".join(uncap_missing))
 
+    # V11：页图注在材料里**根本没有可比 caption**（E 只能 warn）→ 必须进 uncertainty（诚实）
+    no_src_cap, no_src_cap_ok = [], 0
+    mat_caps = {}
+    for f in (ctx.materials or {}).get("files") or []:
+        for it in (f.get("figures") or []):
+            for key in (it.get("id"), it.get("locator"),
+                        Path(str(it.get("media_path") or "")).name):
+                if key:
+                    mat_caps[str(key)] = _norm_ws(it.get("caption"))
+    for p in ctx.pages:
+        fig = p.get("figure") or {}
+        if not _norm_ws(fig.get("caption")):
+            continue
+        feid = str(fig.get("evidence_id") or "")
+        e = ctx.evidence_by_id().get(feid) or {}
+        loc = str((e.get("source") or {}).get("locator") or "")
+        cands = [mat_caps.get(feid), mat_caps.get(loc),
+                 mat_caps.get(Path(str(fig.get("media_path") or "")).name)]
+        if any(c for c in cands if c):
+            continue                                    # 材料里有 caption → E 已负责比对
+        blob_l = _norm_ws(json.dumps(res_unc, ensure_ascii=False)).lower()
+        pid = str(p.get("id"))
+        if (pid.lower() in blob_l) or (feid and feid.lower() in blob_l) \
+                or ("caption" in blob_l) or ("图注" in blob_l):
+            no_src_cap_ok += 1
+        else:
+            no_src_cap.append(pid)
+    if no_src_cap:
+        failures.append("页图注在材料中无 caption 可比且未在 result.uncertainty 声明: %s"
+                        % ",".join(no_src_cap))
+
     if status == "partial" and n_fail == 0 and not any(g["status"] == "warn" for g in prior):
         # 把 status 从 ok 收紧为 partial 是**诚实**行为，不是缺陷 → 只记 note，绝不让 J 变 warn
         # （否则 J 与 pt.py 的 status 写回互为输入，形成 ping-pong 不动点）
         notes.append("status=partial 但前置闸门 0 fail / 0 warn：这是保守声明，不是缺陷")
     detail = ("闸门 fail %d 个 vs result.status=%r; spec uncertainty %d → result 收录 %d; "
               "limitations %d → %d; materials parsed=false %d 个 → 已声明 %d; "
-              "无 caption 的 figure evidence %d 个 → uncertainty 已声明 %d; 前置闸门状态=%s"
+              "无 caption 的 figure evidence %d 个 → uncertainty 已声明 %d; "
+              "图注无材料可比 %d 页 → uncertainty 已声明 %d; 前置闸门状态=%s"
               % (n_fail, status, len(spec_unc), len(res_unc), len(spec_lim), len(res_lim),
                  len(unparsed), len(unparsed) - len(undeclared),
-                 len(uncap), uncap_ok,
+                 len(uncap), uncap_ok, len(no_src_cap) + no_src_cap_ok, no_src_cap_ok,
                  ",".join("%s:%s" % (g["id"], g["status"][:4]) for g in prior)))
     return _g("J", _status(failures, warnings), detail, failures, warnings, prior + notes)
 

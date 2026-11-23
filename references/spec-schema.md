@@ -134,8 +134,8 @@ Three practical rules that save a rebuild:
   "evidence_ids": ["E3","E4","E12","E14","E15"],
   "bullets": ["31.5 % vs 4.2 % delta phase at 1000 h", "Read-out agrees with the efficiency ranking"],
   "figure": {"evidence_id": "E12", "media_path": "/input/materials/fig1.png",
-             "media_rel": "materials/fig1.png",
-             "placement": "right", "caption": "Figure 1. …"},
+             "placement": "right", "caption": "Figure 1. …",
+             "caption_adapted": false},
   "notes": {"say": "…", "timing_s": 115, "checkpoint": "plot read once, left to right"},
   "strength": "strong" }
 ```
@@ -148,8 +148,9 @@ Three practical rules that save a rebuild:
 | `claim` | non-empty, ≤ 160 characters, **one claim**. A claim with an "and" in the middle is usually two pages. |
 | `evidence_ids` | non-empty for every **content** page (gate **A**); `title`, `qa` and `backup` pages are exempt because they carry no claim of their own. Each id must exist. |
 | `bullets` | the on-screen lines. They are shown, so they must not carry a number that no evidence item covers. |
-| `figure` | optional. `evidence_id` must also be in this page's `evidence_ids` (gate **E**); `media_path` must be **absolute** and must exist, with `media_rel` as the readable form (gate **E**); `placement` ∈ `right` \| `left` \| `full` \| `none`. |
-| `figure.caption` | reuse the material's caption verbatim; a shortened caption must be marked as adapted (see [`template-and-render.md`](template-and-render.md) §5). |
+| `figure` | optional. `evidence_id` must also be in this page's `evidence_ids` (gate **E**); `media_path` must be **absolute** and must exist (gate **E**) — `media_rel` is a `materials.json` field (§3.1), not a DeckSpec field; `placement` ∈ `right` \| `left` \| `full` \| `none`. |
+| `figure.caption` | reuse the material's caption verbatim, or shorten it deliberately and set `caption_adapted: true` (see below). |
+| `figure.caption_adapted` | **bool** (default `false`). `true` declares that the on-screen caption is a deliberate rewrite of the source caption. Gate **E** then records it as `adapted` and does **not** fail it. Gate E also accepts a **prefix-truncated** caption (a screenshot or a shortened form that is a prefix of the source and at least 20 chars / 40 % of its length) as `一致(截断)` — truncation by the layout is a legitimate handling, not a defect. |
 | `notes.say` | required and non-empty on content pages; normalised similarity to the joined `bullets` must be **< 0.8** (gate **D**). |
 | `notes.timing_s` | seconds; `Σ` within ±15 % of `60 × budget.minutes` (gate **B**). |
 | `notes.checkpoint` | what must be true before moving on. Not machine-checked; it is the field that keeps a 12-minute talk on the clock. |
@@ -234,8 +235,19 @@ A *valid* spec passes gates A–J. A *good* spec additionally:
 * has `change_records` that show what you cut and why.
 
 The bundled worked example (`examples/synthetic-001/expected/spec.json`) is a small instance of
-all of the above: 9 pages, 17 evidence items, 4 Q&A items, 690 s of speaking time against a
+all of the above: 9 pages, 18 evidence items, 4 Q&A items, 690 s of speaking time against a
 12-minute budget (4.17 % deviation). It is **synthetic** and must never be cited as a case result.
+Its `deck_plan.json` and `result.json` are the output of a real pipeline run on it (gates A–J 10/10
+pass, `status: "ok"`, 2026-11-23), so the page→layout→evidence→gate chain can be read end to end.
+
+### What the deterministic fallback spec looks like
+
+If you are out of budget, `pt.py plan` (or `pt.py run` with no `spec.json`) derives one. It is
+deliberately plain, and three of its behaviours are worth knowing so they are not mistaken for bugs:
+
+* **Markdown markers are stripped** — `#`/`##` heading text never reaches a slide;
+* the claim template follows `meta.language` (`zh` or `en`);
+* pure section headings are skipped when it builds `bullets`.
 
 ---
 
