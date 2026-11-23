@@ -1,0 +1,20 @@
+{
+  "note": "SYNTHETIC EXAMPLE - NOT AN OFFICIAL CASE. Figure and table captions for the invented damp-heat cycling study.",
+  "figures": [
+    {
+      "id": "fig1",
+      "label": "Figure 1",
+      "page": 2,
+      "caption": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group).",
+      "media_rel": "materials/fig1.png"
+    }
+  ],
+  "tables": [
+    {
+      "id": "tab1",
+      "label": "Table 1",
+      "page": 2,
+      "caption": "Table 1. Photovoltaic parameters of the reference and Cs-incorporated groups at 0 h and after 1000 h of damp-heat cycling (mean of 24 devices)."
+    }
+  ]
+}

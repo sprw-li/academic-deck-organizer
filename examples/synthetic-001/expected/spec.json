@@ -1,0 +1,571 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "case_id": "SYNTHETIC-DECK-001",
+    "language": "en",
+    "deck_title": "Damp-heat phase stability of a mixed-halide perovskite absorber",
+    "aspect": "16:9",
+    "template": {
+      "path": "materials/slides-template.pptx",
+      "sha256": "d4d7e8e5c9fd6c674c0e222a6163729f000264891dfd43cc2cc118f8d576a6b2"
+    },
+    "audience": {
+      "id": "group-meeting",
+      "prior_knowledge": "high",
+      "concerns": [
+        "is the comparison controlled",
+        "how strong is the stability claim",
+        "what is still unknown"
+      ],
+      "expected_challenges": [
+        "starting-efficiency matching",
+        "Arrhenius fit with three temperatures",
+        "extrapolation to outdoor lifetime"
+      ]
+    },
+    "goal": {
+      "statement": "Get the group to accept a damp-heat rate difference between the two absorbers, and to agree on what the evidence does not yet support.",
+      "success_checks": [
+        "every number on a slide resolves to a locator",
+        "the limitation slide is delivered by us, not extracted",
+        "the room can restate the retention contrast at the end"
+      ]
+    },
+    "budget": {
+      "minutes": 12,
+      "slide_count": 9,
+      "qa_minutes": 3
+    },
+    "story": {
+      "arc": [
+        "hook",
+        "problem",
+        "gap",
+        "method",
+        "results",
+        "limitation",
+        "conclusion"
+      ],
+      "rationale": "Open on the retention contrast because the audience shares the background; place the mechanism-side phase fraction after the device numbers, and put the boundary before the conclusion so the closing sentence is honest."
+    }
+  },
+  "theme": {
+    "colors": {
+      "primary": "#1F3864",
+      "accent": "#C00000",
+      "text": "#000000",
+      "muted": "#595959"
+    },
+    "fonts": {
+      "heading": "Calibri Light",
+      "body": "Calibri"
+    },
+    "source": "template"
+  },
+  "evidence": [
+    {
+      "id": "E1",
+      "kind": "number",
+      "claim": "Cs-incorporated absorber retains 96.2 % of its initial PCE after 1000 h",
+      "value": 96.2,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L12-L12",
+        "quote": "whereas the Cs-incorporated absorber retained 96.2 %."
+      }
+    },
+    {
+      "id": "E2",
+      "kind": "number",
+      "claim": "Reference as-cast absorber retains 73.8 % of its initial PCE after 1000 h",
+      "value": 73.8,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L11-L11",
+        "quote": "The reference as-cast absorber retained 73.8 % of its initial power conversion efficiency,"
+      }
+    },
+    {
+      "id": "E3",
+      "kind": "number",
+      "claim": "Delta-phase fraction of the reference film after 1000 h",
+      "value": 31.5,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L13-L13",
+        "quote": "The retained fraction tracks the delta-phase fraction measured by X-ray diffraction: 31.5 %"
+      }
+    },
+    {
+      "id": "E4",
+      "kind": "number",
+      "claim": "Delta-phase fraction of the Cs-incorporated film after 1000 h",
+      "value": 4.2,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L14-L14",
+        "quote": "for the reference film and 4.2 % for the Cs-incorporated film."
+      }
+    },
+    {
+      "id": "E5",
+      "kind": "number",
+      "claim": "Activation energy for phase segregation, Cs-incorporated film",
+      "value": 1.12,
+      "unit": "eV",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L15-L15",
+        "quote": "The activation energy for phase segregation rises from 0.78 eV to 1.12 eV, consistent with"
+      }
+    },
+    {
+      "id": "E6",
+      "kind": "number",
+      "claim": "Activation energy for phase segregation, reference film",
+      "value": 0.78,
+      "unit": "eV",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L15-L15",
+        "quote": "The activation energy for phase segregation rises from 0.78 eV to 1.12 eV, consistent with"
+      }
+    },
+    {
+      "id": "E7",
+      "kind": "number",
+      "claim": "T80 lifetime of the reference film under damp heat",
+      "value": 240,
+      "unit": "h",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L16-L16",
+        "quote": "the observed T80 lifetime increase from 240 h to 1450 h."
+      }
+    },
+    {
+      "id": "E8",
+      "kind": "number",
+      "claim": "T80 lifetime of the Cs-incorporated film under damp heat",
+      "value": 1450,
+      "unit": "h",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L16-L16",
+        "quote": "the observed T80 lifetime increase from 240 h to 1450 h."
+      }
+    },
+    {
+      "id": "E9",
+      "kind": "number",
+      "claim": "Reference group initial PCE",
+      "value": 21.4,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L29-L29",
+        "quote": "The reference group fell from 21.4 % to 15.8 % over 1000 h, while the Cs-incorporated"
+      }
+    },
+    {
+      "id": "E10",
+      "kind": "number",
+      "claim": "Reference group PCE after 1000 h",
+      "value": 15.8,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L29-L29",
+        "quote": "The reference group fell from 21.4 % to 15.8 % over 1000 h, while the Cs-incorporated"
+      }
+    },
+    {
+      "id": "E11",
+      "kind": "number",
+      "claim": "Cs-incorporated group PCE after 1000 h",
+      "value": 20.1,
+      "unit": "%",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L30-L30",
+        "quote": "group fell from 20.9 % to 20.1 % (Table 1)."
+      }
+    },
+    {
+      "id": "E16",
+      "kind": "quote",
+      "claim": "Sample preparation, encapsulation and XRD sampling protocol",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L23-L25",
+        "quote": "Films were spun from a 1.2 M precursor solution and annealed at 150 C for 20 min.\nDevices were encapsulated with a glass-glass edge seal and cycled at 85 C and 85 %\nrelative humidity. X-ray diffraction was collected every 100 h."
+      }
+    },
+    {
+      "id": "E17",
+      "kind": "quote",
+      "claim": "Stated scope of the study (window, stack, n, temperatures)",
+      "source": {
+        "file": "paper-excerpt.md",
+        "locator": "paper-excerpt.md#L43-L44",
+        "quote": "The study covers 1000 h only, one encapsulation stack and 24 devices per group; the\nArrhenius fit uses three temperatures. Outdoor validation is not included."
+      }
+    },
+    {
+      "id": "E14",
+      "kind": "number",
+      "claim": "Delta-phase fraction after 1000 h as recorded in the cycling data",
+      "value": 31.5,
+      "unit": "%",
+      "source": {
+        "file": "results.csv",
+        "locator": "results.csv#L4-L4",
+        "quote": "REF-1000h,1000,15.80,1.060,22.40,66.5,31.5"
+      }
+    },
+    {
+      "id": "E15",
+      "kind": "number",
+      "claim": "Delta-phase fraction after 1000 h for the Cs group in the cycling data",
+      "value": 4.2,
+      "unit": "%",
+      "source": {
+        "file": "results.csv",
+        "locator": "results.csv#L7-L7",
+        "quote": "CS-1000h,1000,20.10,1.130,24.30,73.2,4.2"
+      }
+    },
+    {
+      "id": "E12",
+      "kind": "figure",
+      "claim": "Figure 1 caption: delta-phase fraction during damp-heat cycling",
+      "source": {
+        "file": "figure-notes.json",
+        "locator": "figure-notes.json#fig.1",
+        "quote": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group)."
+      }
+    },
+    {
+      "id": "E13",
+      "kind": "table",
+      "claim": "Table 1 caption: photovoltaic parameters at 0 h and 1000 h",
+      "source": {
+        "file": "figure-notes.json",
+        "locator": "figure-notes.json#tab.1",
+        "quote": "Table 1. Photovoltaic parameters of the reference and Cs-incorporated groups at 0 h and after 1000 h of damp-heat cycling (mean of 24 devices)."
+      }
+    }
+  ],
+  "pages": [
+    {
+      "id": "P1",
+      "role": "title",
+      "layout": "Deck Title",
+      "claim": "Can caesium incorporation remove the damp-heat failure route of a mixed-halide absorber?",
+      "evidence_ids": [
+        "E1"
+      ],
+      "bullets": [
+        "1000 h at 85 C and 85 % RH",
+        "24 devices per group, 2 absorbers",
+        "Group meeting, 12 minutes"
+      ],
+      "notes": {
+        "say": "Frame the question, not the paper. The room knows phase segregation, so the opening has to define what a satisfactory answer would look like: a retention number, a mechanism-side measurement, and an explicit statement of what is still unknown.",
+        "timing_s": 25,
+        "checkpoint": "Question on screen before the first data slide"
+      },
+      "strength": "moderate"
+    },
+    {
+      "id": "P2",
+      "role": "hook",
+      "layout": "Deck Section",
+      "claim": "1000 h of damp heat separates the two absorbers: 73.8 % retention for the reference, 96.2 % with Cs",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ],
+      "bullets": [
+        "Reference: 73.8 % of initial PCE",
+        "Cs-incorporated: 96.2 %",
+        "Same cycling conditions for both groups"
+      ],
+      "notes": {
+        "say": "Lead with the contrast. Both groups started near 21 %, so the entire gap at 1000 h is a difference in degradation rate, not in the starting point. Do not explain the mechanism yet; let the number sit for a moment before moving on.",
+        "timing_s": 50,
+        "checkpoint": "Audience has seen 73.8 % vs 96.2 %"
+      },
+      "strength": "strong"
+    },
+    {
+      "id": "P3",
+      "role": "problem",
+      "layout": "Deck Content",
+      "claim": "The Cs-incorporated absorber trades a little initial efficiency for damp-heat stability",
+      "evidence_ids": [
+        "E9",
+        "E10",
+        "E11"
+      ],
+      "bullets": [
+        "Reference: 21.4 % at 0 h, 15.8 % at 1000 h",
+        "Cs-incorporated: 20.9 % at 0 h, 20.1 % at 1000 h",
+        "The gap opens over time, not at t = 0"
+      ],
+      "notes": {
+        "say": "Quantify the trade. The reference loses about a quarter of its efficiency; the Cs-incorporated film loses almost nothing. Say explicitly that this is an encapsulated device result under lab cycling and that nothing here is a module-level claim.",
+        "timing_s": 75,
+        "checkpoint": "Trade-off stated as a rate difference"
+      },
+      "strength": "strong"
+    },
+    {
+      "id": "P4",
+      "role": "gap",
+      "layout": "Deck Content",
+      "claim": "What moves with retention is the delta-phase fraction, not the starting efficiency",
+      "evidence_ids": [
+        "E3",
+        "E4"
+      ],
+      "bullets": [
+        "X-ray diffraction collected every 100 h",
+        "Reference film: 31.5 % delta phase after 1000 h",
+        "Cs-incorporated film: 4.2 %"
+      ],
+      "notes": {
+        "say": "This is the part of the story that was not settled before: the amount of photo-inactive delta phase tracks how much efficiency survives. When asked why phase fraction should be the read-out, point at the ordering rather than at the absolute values.",
+        "timing_s": 75,
+        "checkpoint": "Mechanism-side measurement introduced"
+      },
+      "strength": "moderate"
+    },
+    {
+      "id": "P5",
+      "role": "method",
+      "layout": "Deck Two Column",
+      "claim": "Two groups, 24 encapsulated devices each, cycled at 85 C and 85 % RH for 1000 h",
+      "evidence_ids": [
+        "E16",
+        "E12"
+      ],
+      "bullets": [
+        "1.2 M precursor, 150 C anneal for 20 min",
+        "Glass-glass edge seal",
+        "XRD every 100 h; 24 devices per group"
+      ],
+      "notes": {
+        "say": "Keep this short and concrete: the room cares about the encapsulation stack and the sampling density, not about the spin-coating recipe. Mention that the same encapsulation and the same chamber were used for both groups, which is what makes the comparison meaningful.",
+        "timing_s": 100,
+        "checkpoint": "Protocol and n on screen"
+      },
+      "strength": "strong"
+    },
+    {
+      "id": "P6",
+      "role": "results",
+      "layout": "Deck Figure",
+      "claim": "After 1000 h the delta-phase fraction is 31.5 % in the reference film and 4.2 % with Cs",
+      "evidence_ids": [
+        "E3",
+        "E4",
+        "E12",
+        "E14",
+        "E15"
+      ],
+      "bullets": [
+        "31.5 % vs 4.2 % delta phase at 1000 h",
+        "Read-out agrees with the efficiency ranking",
+        "Data rows: results.csv lines 4 and 7"
+      ],
+      "notes": {
+        "say": "Walk the audience across the plot once, left to right. The reference curve bends upward after roughly 500 h while the Cs-incorporated curve stays flat, so the divergence starts mid-experiment. Offer the raw rows as the checkable source, not just the plot.",
+        "timing_s": 115,
+        "checkpoint": "Plot read left to right once, no re-reading"
+      },
+      "strength": "strong",
+      "figure": {
+        "evidence_id": "E12",
+        "media_path": "/input/materials/fig1.png",
+        "media_rel": "materials/fig1.png",
+        "placement": "right",
+        "caption": "Figure 1. Delta-phase fraction from X-ray diffraction for the reference and Cs-incorporated films during 1000 h of damp-heat cycling at 85 C and 85 % relative humidity (24 devices per group)."
+      }
+    },
+    {
+      "id": "P7",
+      "role": "results",
+      "layout": "Deck Content",
+      "claim": "Activation energy rises from 0.78 eV to 1.12 eV and T80 from 240 h to 1450 h",
+      "evidence_ids": [
+        "E5",
+        "E6",
+        "E7",
+        "E8"
+      ],
+      "bullets": [
+        "0.78 eV -> 1.12 eV from Arrhenius analysis",
+        "T80: 240 h -> 1450 h",
+        "Same ordering as the phase-fraction result"
+      ],
+      "notes": {
+        "say": "Give the kinetic numbers as estimates, not constants: three temperatures is the minimum for a straight-line fit. If the room pushes, agree that the error bar is unknown and offer the raw data as the way to settle it later.",
+        "timing_s": 95,
+        "checkpoint": "Kinetics stated as estimates"
+      },
+      "strength": "preliminary"
+    },
+    {
+      "id": "P8",
+      "role": "limitation",
+      "layout": "Deck Content",
+      "claim": "The claim is bounded by a 1000 h window, one encapsulation stack, 24 devices and three temperatures",
+      "evidence_ids": [
+        "E17"
+      ],
+      "bullets": [
+        "1000 h, single encapsulation stack",
+        "n = 24 devices per group",
+        "No outdoor or module-scale validation"
+      ],
+      "notes": {
+        "say": "Say the limit before anyone asks for it. The honest sentence is that this shows a rate difference inside one stack, and that an extrapolated lifetime would need a longer window and more temperatures. Then stop talking.",
+        "timing_s": 85,
+        "checkpoint": "A limitation is stated by us, not extracted from us"
+      },
+      "strength": "moderate"
+    },
+    {
+      "id": "P9",
+      "role": "conclusion",
+      "layout": "Deck Content",
+      "claim": "Cs incorporation keeps the black phase and retains 96.2 % of initial PCE after 1000 h",
+      "evidence_ids": [
+        "E1",
+        "E13",
+        "E7"
+      ],
+      "bullets": [
+        "96.2 % retained vs 73.8 % for the reference",
+        "T80 extended from 240 h to 1450 h",
+        "Open item: outdoor validation, not covered here"
+      ],
+      "notes": {
+        "say": "Close on the one sentence the room should remember, then hand over the open item. Do not re-read the agenda or re-list the slides; the conclusion is stronger when it is said once.",
+        "timing_s": 70,
+        "checkpoint": "One memorable sentence, then Q&A"
+      },
+      "strength": "strong"
+    }
+  ],
+  "qa": [
+    {
+      "id": "Q1",
+      "question": "Is the comparison fair, given that the Cs-incorporated group starts at a lower efficiency?",
+      "answer": "Yes for the point being made: both groups start between 20.9 % and 21.4 %, and the 1000 h endpoint is 20.1 % versus 15.8 %, so the difference is in the degradation rate rather than in the starting point. A starting-efficiency-matched control is not shown in this excerpt, and that is worth saying out loud.",
+      "evidence_ids": [
+        "E9",
+        "E10",
+        "E11"
+      ],
+      "slide_ids": [
+        "P3",
+        "P7"
+      ],
+      "risk": "medium",
+      "category": "data"
+    },
+    {
+      "id": "Q2",
+      "question": "Which measurement actually supports the stability claim: efficiency or phase fraction?",
+      "answer": "Both, and they agree. The phase fraction is the mechanism-side read-out (31.5 % vs 4.2 % delta phase) and retention is the device-side read-out (73.8 % vs 96.2 %). Presenting them together is what makes the claim more than a single-number result.",
+      "evidence_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E14",
+        "E15"
+      ],
+      "slide_ids": [
+        "P2",
+        "P6"
+      ],
+      "risk": "low",
+      "category": "mechanism"
+    },
+    {
+      "id": "Q3",
+      "question": "Can a three-temperature Arrhenius fit really support a 1.12 eV activation energy?",
+      "answer": "Only weakly. Three temperatures is the minimum for a straight-line fit and no error bars are given, so 1.12 eV should be presented as an estimate. If pressed, say the fix is a temperature series with repeats rather than a re-fit of the same data.",
+      "evidence_ids": [
+        "E5",
+        "E6",
+        "E17"
+      ],
+      "slide_ids": [
+        "P7",
+        "P8"
+      ],
+      "risk": "high",
+      "category": "limitation"
+    },
+    {
+      "id": "Q4",
+      "question": "How long would the Cs-incorporated absorber last outdoors?",
+      "answer": "Not answered by this work. The window is 1000 h of lab damp-heat cycling on one encapsulation stack, with no outdoor or module-scale data. Any outdoor lifetime figure would be an extrapolation outside the study, so decline to give one.",
+      "evidence_ids": [
+        "E17",
+        "E7"
+      ],
+      "slide_ids": [
+        "P8"
+      ],
+      "risk": "high",
+      "category": "limitation"
+    }
+  ],
+  "uncertainty": [
+    {
+      "id": "U1",
+      "what": "Device-to-device spread is not reported in the excerpt",
+      "why": "the materials give group means only",
+      "impact": "retention numbers are point estimates without an error bar"
+    },
+    {
+      "id": "U2",
+      "what": "The Arrhenius fit rests on three temperatures",
+      "why": "no fit statistics or repeats appear in the materials",
+      "impact": "the reported activation energies carry an unknown uncertainty"
+    },
+    {
+      "id": "U3",
+      "what": "This example is synthetic and was not produced by a live case run",
+      "why": "the shipped bundle must contain UTF-8 text only, so the fixture is shipped as a generator",
+      "impact": "gate details and artefacts here are illustrative; re-run pt.py to obtain measured ones"
+    }
+  ],
+  "limitations": [
+    "The study window is 1000 h of lab damp-heat cycling only; no outdoor or module-scale data are available.",
+    "One encapsulation stack and one device architecture are covered; the comparison is not stack-independent.",
+    "The Arrhenius fit uses three temperatures, which is the minimum for a line fit.",
+    "materials/fig1.png in the fixture is regenerated from the synthetic data, not a pixel copy of a published figure."
+  ],
+  "change_records": [
+    {
+      "at": "2026-11-23T00:00:00+08:00",
+      "what": "authored the synthetic DeckSpec for the group-meeting case (9 pages, 17 evidence items)",
+      "why": "give the Skill a complete, checkable example of the authored-spec step"
+    },
+    {
+      "at": "2026-11-23T00:00:00+08:00",
+      "what": "capped page timing at 690 s total against a 12-minute budget",
+      "why": "keep gate B's +/-15 % budget check satisfied with the frozen slide count of 9"
+    }
+  ]
+}
