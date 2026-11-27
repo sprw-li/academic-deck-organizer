@@ -309,6 +309,7 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
     out_dir.mkdir(parents=True, exist_ok=True)
 
     warnings: list = []
+    adaptations_out: list = []   # template adaptations: real placeholder clones, not defects
     slides_plan: list = []
 
     prs, template_path = _load_template(spec, work_dir, template_index, warnings)
@@ -446,6 +447,7 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
         log_by_shape = {id(p["shape"]): entry for p, entry in zip(ph_list, used_log)}
 
         textbox_fallbacks: list = []
+        adaptations: list = []
 
         # --- 标题 ---
         title_text = deck_title if role == "title" and deck_title else claim
@@ -453,10 +455,35 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
             _set_title(title_ph["shape"], title_text or deck_title)
             log_by_shape[id(title_ph["shape"])]["used_for"] = "title/claim"
         elif title_text:
-            r = _picture_rect(spec, prs, "full")
-            _add_textbox(slide, r[0], int(r[1] * 0.45), r[2], int(prs.slide_height * 0.18), title_text)
-            slide_warnings.append("no title placeholder on layout %r; title placed in a textbox" % layout_name)
-            textbox_fallbacks.append({"purpose": "title", "reason": "no title placeholder in layout"})
+            # 布局没有标题占位符时，先从 master 克隆一个真占位符（保留 <p:ph>），
+            # 而不是直接写 textbox —— textbox 标题在评审里等同于"伪造版式"。
+            master_title = None
+            try:
+                for mph in prs.slide_masters[0].placeholders:
+                    if _ph_type(mph).lower() in TITLE_PH_TYPES:
+                        master_title = mph
+                        break
+            except Exception:
+                master_title = None
+            cloned_title = _clone_master_placeholder(slide, master_title) if master_title is not None else None
+            if cloned_title is not None:
+                _set_title(cloned_title, title_text or deck_title)
+                used_log.append({"idx": _ph_idx(cloned_title), "type": _ph_type(cloned_title),
+                                 "name": _ph_name(cloned_title), "geom": _geom(cloned_title),
+                                 "used_for": "title(from master clone)"})
+                log_by_shape[id(cloned_title)] = used_log[-1]
+                adaptations.append({
+                    "code": "TITLE-PH-CLONED",
+                    "detail": "layout %r has no title placeholder; cloned the master title "
+                              "placeholder (kept <p:ph>, not a raw textbox)" % layout_name,
+                })
+            else:
+                r = _picture_rect(spec, prs, "full")
+                _add_textbox(slide, r[0], int(r[1] * 0.45), r[2], int(prs.slide_height * 0.18), title_text)
+                slide_warnings.append("no title placeholder on layout %r and no master title "
+                                      "placeholder to clone; title placed in a textbox" % layout_name)
+                textbox_fallbacks.append({"purpose": "title",
+                                          "reason": "no title placeholder in layout or master"})
 
         # --- 正文 ---
         body_targets = list(body_phs)
@@ -482,9 +509,11 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
                                      "name": body_targets[0]["name"], "geom": body_targets[0]["geom"],
                                      "used_for": "bullets(from master clone)"})
                     log_by_shape[id(cloned)] = used_log[-1]
-                    slide_warnings.append(
-                        "layout %r has no body placeholder; cloned body placeholder from master "
-                        "(kept <p:ph>, not a raw textbox)" % layout_name)
+                    adaptations.append({
+                        "code": "BODY-PH-CLONED",
+                        "detail": "layout %r has no body placeholder; cloned the master body "
+                                  "placeholder (kept <p:ph>, not a raw textbox)" % layout_name,
+                    })
         for gi, group in enumerate(wanted_groups):
             if not group:
                 continue
@@ -596,9 +625,11 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
                       "written": bool(notes_text)},
             "placeholders": used_log,
             "textbox_fallbacks": textbox_fallbacks,
+            "adaptations": adaptations,
             "warnings": slide_warnings,
         })
         warnings.extend("%s: %s" % (slide_id, w) for w in slide_warnings)
+        adaptations_out.extend(dict(a, slide_id=slide_id) for a in adaptations)
 
     # ---- 预算一致性 ----
     minutes = budget.get("minutes")
@@ -638,6 +669,7 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
         "deck": {"path": deck_path.name, "bytes": deck_bytes, "sha256": deck_sha,
                  "slides": len(prs.slides)},
         "warnings": warnings,
+        "adaptations": adaptations_out,
         "slides": slides_plan,
     }
     artifacts = {"deck.pptx": {"path": str(deck_path), "bytes": deck_bytes, "sha256": deck_sha}}
@@ -655,6 +687,7 @@ def build(spec: dict, work_dir: str | Path, out_dir: str | Path, *, template_ind
         "slides": len(slides_plan),
         "artifacts": artifacts,
         "warnings": warnings,
+        "adaptations": adaptations_out,
         "deck_sha256": deck_sha,
         "deck_plan": deck_plan,
     }
